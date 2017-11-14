@@ -264,7 +264,9 @@ public class CandidatesContainer extends RelativeLayout implements
 		Environment env = Environment.getInstance();
 		int measuredWidth = env.getScreenWidth();
 		int measuredHeight = getPaddingTop();
-		measuredHeight += env.getHeightForCandidates();
+//		measuredHeight += env.getHeightForCandidates();
+		//这里把高度设置为固定值16px
+		measuredHeight = 16;
 		widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
 				MeasureSpec.EXACTLY);
 		heightMeasureSpec = MeasureSpec.makeMeasureSpec(measuredHeight,
@@ -411,12 +413,12 @@ public class CandidatesContainer extends RelativeLayout implements
 
 		if (backwardEnabled) {
 			//do not show the arrow
-			enableArrow(mLeftArrowBtn, true);
+			enableArrow(mLeftArrowBtn, false);
 		} else {
 			enableArrow(mLeftArrowBtn, false);
 		}
 		if (forwardEnabled) {
-			enableArrow(mRightArrowBtn, true);
+			enableArrow(mRightArrowBtn, false);
 		} else {
 			enableArrow(mRightArrowBtn, false);
 		}
@@ -446,7 +448,7 @@ public class CandidatesContainer extends RelativeLayout implements
 		if (show)
 			arrowBtn.setVisibility(View.VISIBLE);
 		else
-			arrowBtn.setVisibility(View.INVISIBLE);
+			arrowBtn.setVisibility(View.GONE);
 	}
 
 	/**
