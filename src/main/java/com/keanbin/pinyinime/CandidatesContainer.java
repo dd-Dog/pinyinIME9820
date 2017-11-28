@@ -29,20 +29,11 @@ import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationSet;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ViewFlipper;
 
 import com.keanbin.pinyinime.PinyinIME.DecodingInfo;
-
-/**
- * 集装箱中的箭头更新监听器
- * 
- * @ClassName ArrowUpdater
- * @author keanbin
- */
-interface ArrowUpdater {
-	void updateArrowStatus();
-}
 
 /**
  * Container used to host the two candidate views. When user drags on candidate
@@ -59,7 +50,7 @@ interface ArrowUpdater {
  * @ClassName CandidatesContainer
  * @author keanbin
  */
-public class CandidatesContainer extends RelativeLayout implements
+public class CandidatesContainer extends LinearLayout implements
 		OnTouchListener, AnimationListener, ArrowUpdater {
 
 	private static final String TAG = "CandidatesContainer";
@@ -269,8 +260,8 @@ public class CandidatesContainer extends RelativeLayout implements
 		int measuredWidth = env.getScreenWidth();
 		int measuredHeight = getPaddingTop();
 //		measuredHeight += env.getHeightForCandidates();
-		//这里把高度设置为固定值16px
-		measuredHeight = 16;
+		//这里把高度设置为固定值16px--bianjb
+		measuredHeight = 30;
 		widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
 				MeasureSpec.EXACTLY);
 		heightMeasureSpec = MeasureSpec.makeMeasureSpec(measuredHeight,

@@ -3,12 +3,15 @@ package com.keanbin.pinyinime.utils;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.util.ArrayList;
+
 /**
  * Created by MrBian on 2017/11/27.
  */
 
 public class T92Pinyin {
     private static final String TAG = "T92Pinyin";
+    private static Object splStrs;
 
     public static char[] findCharsByKeycodes(String keys) {
         int length = keys.length();
@@ -31,6 +34,59 @@ public class T92Pinyin {
         }
     }
 
+    /**
+     * 获取所有匹配的拼音组合
+     * @param inputKey
+     * @return
+     */
+    public static ArrayList<char[]> getSplStrs(String inputKey) {
+        ArrayList<char[]> arrayList = new ArrayList<>();
+        int length = inputKey.length();
+        switch (length) {
+            case 1:
+                return getAllCharArr(t9PY_index1, inputKey);
+            case 2:
+                return getAllCharArr(t9PY_index2, inputKey);
+            case 3:
+                return getAllCharArr(t9PY_index3, inputKey);
+            case 4:
+                return getAllCharArr(t9PY_index4, inputKey);
+            case 5:
+                return getAllCharArr(t9PY_index5, inputKey);
+            case 6:
+                return getAllCharArr(t9PY_index6, inputKey);
+        }
+        return arrayList;
+    }
+
+    /**
+     * 查询对应数组获取拼音字符数组
+     * @param index
+     * @param keys
+     * @return
+     */
+    public static ArrayList<char[]> getAllCharArr(String[][] index, String keys) {
+        ArrayList<char[]> charsArr = new ArrayList<>();
+        for (int i=0; i<index.length; i++) {
+            if (TextUtils.equals(index[i][0], keys)) {
+                String s = index[i][1];
+                int slen = s.length();
+                char[] chars = new char[slen];
+                for (int j = 0; j < slen; j++) {
+                    chars[j] = s.charAt(j);
+                }
+                charsArr.add(chars);
+                continue;
+            }
+        }
+        return charsArr;
+    }
+    /**
+     * 获取第一个匹配的
+     * @param index
+     * @param keys
+     * @return
+     */
     private static char[] getChars(String[][] index, String keys) {
         for (int i = 0; i < index.length; i++) {
             if (TextUtils.equals(index[i][0], keys)) {
@@ -79,7 +135,6 @@ public class T92Pinyin {
             {"24", "bi"},
             {"24", "ch"},
             {"24", "ci"},
-            {"26", "co"},
             {"26", "bo"},
             {"26", "an"},
             {"26", "ao"},
@@ -538,4 +593,6 @@ public class T92Pinyin {
             {"748264", "shuang"},
             {"948264", "zhuang"},
     };
+
+
 }

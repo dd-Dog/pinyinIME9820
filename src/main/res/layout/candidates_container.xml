@@ -4,7 +4,7 @@
     android:layout_width="0dip"
     android:layout_height="0dip"
     android:background="@drawable/cands_container_bg"
-    android:orientation="horizontal" >
+    android:orientation="vertical" >
 
     <ImageButton
         android:id="@+id/arrow_left_btn"
@@ -24,6 +24,13 @@
         android:clickable="true"
         android:src="@drawable/arrow_right" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:background="#f00"
+        android:orientation="horizontal"
+        android:layout_height="15px">
+
+    </LinearLayout>
     <ViewFlipper
         android:id="@+id/candidate_flipper"
         android:layout_width="match_parent"

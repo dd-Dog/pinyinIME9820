@@ -646,8 +646,9 @@ public class CandidateView extends View {
                 mActiveCellDrawable.draw(canvas);
             }
 
-            if (mCandRects.size() < pSize)
+            if (mCandRects.size() < pSize) {
                 mCandRects.add(new RectF());
+            }
             mCandRects.elementAt(i).set(xPos - 1, yPos + mFmiCandidates.top,
                     xPos + itemTotalWidth + 1, yPos + mFmiCandidates.bottom);
 

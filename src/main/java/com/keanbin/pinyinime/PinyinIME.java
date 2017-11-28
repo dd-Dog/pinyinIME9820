@@ -346,43 +346,27 @@ public class PinyinIME extends InputMethodService {
                     keyChar = keyCode - KeyEvent.KEYCODE_0 + '0';
                     break;
                 case KeyEvent.KEYCODE_2:
-                    mDecInfo.addInputKey('2');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 'a';
                     break;
                 case KeyEvent.KEYCODE_3:
-                    mDecInfo.addInputKey('3');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 'd';
                     break;
                 case KeyEvent.KEYCODE_4:
-                    mDecInfo.addInputKey('4');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 'g';
                     break;
                 case KeyEvent.KEYCODE_5:
-                    mDecInfo.addInputKey('5');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 'j';
                     break;
                 case KeyEvent.KEYCODE_6:
-                    mDecInfo.addInputKey('6');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 'm';
                     break;
                 case KeyEvent.KEYCODE_7:
-                    mDecInfo.addInputKey('7');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 'p';
                     break;
                 case KeyEvent.KEYCODE_8:
-                    mDecInfo.addInputKey('8');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 't';
                     break;
                 case KeyEvent.KEYCODE_9:
-                    mDecInfo.addInputKey('9');
-                    mDecInfo.updateCandidateSplArr();
                     keyChar = 'w';
                     break;
                 default:
@@ -1133,7 +1117,7 @@ public class PinyinIME extends InputMethodService {
      * @param resetInlineText
      */
     private void resetToIdleState(boolean resetInlineText) {
-        Log.d(TAG, "resetToIdleState()");
+        Log.d(TAG, "resetToIdleState() mImeState=" + mImeState);
         if (ImeState.STATE_IDLE == mImeState)
             return;
 
@@ -2131,6 +2115,10 @@ public class PinyinIME extends InputMethodService {
             mActiveCmpsLen = 0;
             mActiveCmpsDisplayLen = 0;
 
+            //bianjb--把记录的输入也要清空
+            inputKeyChars.clear();
+
+
             resetCandidates();
         }
 
@@ -2158,7 +2146,7 @@ public class PinyinIME extends InputMethodService {
          * bianjb
          * 根据输入，更新拼音组合的数组
          */
-        private ArrayList<String> composeStrArr = new ArrayList<>();
+        private ArrayList<char[]> candidateSplArr = new ArrayList<>();
         private ArrayList<Character> inputKeyChars = new ArrayList<>();
 
         public void addInputKey(char c) {
@@ -2174,7 +2162,11 @@ public class PinyinIME extends InputMethodService {
         }
 
         public void updateCandidateSplArr() {
+            candidateSplArr = T92Pinyin.getSplStrs(getInputKey());
+        }
 
+        public ArrayList<char[]> getCandidateSplArr() {
+            return candidateSplArr;
         }
 
         /**
@@ -2184,6 +2176,7 @@ public class PinyinIME extends InputMethodService {
          * @param reset 拼写字符是否重置
          */
         public void addSplChar(char ch, boolean reset) {
+            Log.e(TAG, "DecodeInfo::addSplChar()::char=" + ch + ",reset=" + reset);
             if (reset) {
                 mSurface.delete(0, mSurface.length());
                 mSurfaceDecodedLen = 0;
@@ -2193,7 +2186,14 @@ public class PinyinIME extends InputMethodService {
                 } catch (RemoteException e) {
                 }
             }
+
+            //bianjb--把按键输入保存起来
+            mDecInfo.addInputKey(char2code(ch));
+            mDecInfo.updateCandidateSplArr();
+
+
             mSurface.insert(mCursorPos, ch);
+            Log.e(TAG, "DecodeInfo::addSplChar()" + "mSurface=" + mSurface.toString());
             mCursorPos++;
         }
 
@@ -2359,7 +2359,7 @@ public class PinyinIME extends InputMethodService {
             mCnToPage.add(0);
 
 //            inputKeyChars.clear();
-//            composeStrArr.clear();
+//            candidateSplArr.clear();
         }
 
         /**
@@ -2411,8 +2411,14 @@ public class PinyinIME extends InputMethodService {
                         } else {
                             if (mPyBuf == null)
                                 mPyBuf = new byte[PY_STRING_MAX];
-                            for (int i = 0; i < length(); i++)
-                                mPyBuf[i] = (byte) charAt(i);
+                            //bianjb--替换搜索字符串
+                            String inputKey = mDecInfo.getInputKey();
+                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
+                            if (chars == null) return;
+                            for (int i = 0; i < chars.length; i++) {
+                                mPyBuf[i] = (byte) chars[i];
+//                                mPyBuf[i] = (byte) charAt(i);
+                            }
                             mPyBuf[length()] = 0;
 
                             if (mPosDelSpl < 0) {
@@ -2437,6 +2443,45 @@ public class PinyinIME extends InputMethodService {
                 }
                 updateDecInfoForSearch(totalChoicesNum);
             }
+        }
+
+        private String map(String s) {
+            String result = "";
+            for (int i = 0; i < s.length(); i++) {
+                result += char2code(s.charAt(i));
+            }
+            return result;
+        }
+
+        private char char2code(char c) {
+            char result = '0';
+            switch (c) {
+                case 'a':
+                    result = '2';
+                    break;
+                case 'd':
+                    result = '3';
+                    break;
+                case 'g':
+                    result = '4';
+                    break;
+                case 'j':
+                    result = '5';
+                    break;
+                case 'm':
+                    result = '6';
+                    break;
+                case 'p':
+                    result = '7';
+                    break;
+                case 't':
+                    result = '8';
+                    break;
+                case 'w':
+                    result = '9';
+                    break;
+            }
+            return result;
         }
 
         /**
