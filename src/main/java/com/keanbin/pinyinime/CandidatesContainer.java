@@ -18,6 +18,7 @@ package com.keanbin.pinyinime;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -60,6 +61,8 @@ interface ArrowUpdater {
  */
 public class CandidatesContainer extends RelativeLayout implements
 		OnTouchListener, AnimationListener, ArrowUpdater {
+
+	private static final String TAG = "CandidatesContainer";
 	/**
 	 * Alpha value to show an enabled arrow. 箭头图片显示时的透明度
 	 */
@@ -215,6 +218,7 @@ public class CandidatesContainer extends RelativeLayout implements
 		if (null == decInfo)
 			return;
 		mDecInfo = decInfo;
+		Log.e(TAG, "mDecInfo=" + mDecInfo);
 		mCurrentPage = 0;
 
 		if (decInfo.isCandidatesListEmpty()) {
