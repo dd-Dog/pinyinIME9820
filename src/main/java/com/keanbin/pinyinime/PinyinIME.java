@@ -396,6 +396,8 @@ public class PinyinIME extends InputMethodService {
             } else if (mImeState == ImeState.STATE_COMPOSING) {
                 return processStateEditComposing(keyChar, keyCode, event,
                         realAction);
+            }else if (mImeState == ImeState.STATE_CHOOSING) {
+                return processStateChoosing(keyChar, keyCode, event, realAction);
             }
         } else {// 符号处理
             if (0 != keyChar && realAction) {
@@ -672,9 +674,13 @@ public class PinyinIME extends InputMethodService {
                 // the state to edit composing string.
                 // 到上一页候选词
                 if (!mCandidatesContainer.pageBackward(false, true)) {
+                    //此时候选词位于第0页，应该光标上移到composingtext,候选高亮设置为false
                     mCandidatesContainer.enableActiveHighlight(false);
-                    changeToStateComposing(true);
-                    updateComposingText(true);
+                    changeToStateChoosing(true);
+                    //此时光标上移到choosing view
+                    
+//                    changeToStateComposing(true);
+//                    updateComposingText(true);
                 }
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 // 到下一页候选词
@@ -730,6 +736,21 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 切换至选择组合拼音字符串的状态
+     * @param updateUi
+     */
+    private void changeToStateChoosing(boolean updateUi) {
+        Log.d(TAG, "changeToStateChoosing()");
+        mImeState = ImeState.STATE_CHOOSING;
+        if (!updateUi)
+            return;
+
+        if (null != mSkbContainer && mSkbContainer.isShown()) {
+            mSkbContainer.toggleCandidateMode(true);
+        }
     }
 
     /**
@@ -825,6 +846,121 @@ public class PinyinIME extends InputMethodService {
     }
 
     /**
+     * 当 mImeState == ImeState.STATE_CHOOSING 时的按键处理函数
+     *
+     * @param keyChar
+     * @param keyCode
+     * @param event
+     * @param realAction
+     * @return
+     */
+    private boolean processStateChoosing(int keyChar, int keyCode,
+                                              KeyEvent event, boolean realAction) {
+        Log.d(TAG, "processStateChoosing()");
+        if (!realAction)
+            return true;
+
+        // 获取输入的拼音字符串的状态
+        ComposingView.ComposingStatus cmpsvStatus = mComposingView
+                .getComposingStatus();
+
+        // If ALT key is pressed, input alternative key. But if the
+        // alternative key is quote key, it will be used for input a splitter
+        // in Pinyin string.
+        // 按住 ALT 键
+        if (event.isAltPressed()) {
+            if ('\'' != event.getUnicodeChar(event.getMetaState())) {
+                // 获取中文全角字符
+                char fullwidth_char = KeyMapDream.getChineseLabel(keyCode);
+                if (0 != fullwidth_char) {
+                    String retStr;
+                    if (ComposingView.ComposingStatus.SHOW_STRING_LOWERCASE == cmpsvStatus) {
+                        // 获取原始的输入拼音的字符
+                        retStr = mDecInfo.getOrigianlSplStr().toString();
+                    } else {
+                        // 获取组合的输入拼音的字符（有可能存在选中的候选词）
+                        retStr = mDecInfo.getComposingStr();
+                    }
+                    // 发送文本给EditText
+                    commitResultText(retStr + String.valueOf(fullwidth_char));
+                    resetToIdleState(false);
+                }
+                return true;
+            } else {
+                keyChar = '\'';
+            }
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            if (!mDecInfo.selectionFinished()) {
+                changeToStateInput(true);
+            }
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+            changeToStateComposing(true);
+
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
+                || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            Log.e(TAG, "change to biao");
+            //重新查询词库
+            mDecInfo.chooseDecodingCandidate(-1);
+            //更新候选词UI
+            mCandidatesContainer.showCandidates(mDecInfo,
+                    ImeState.STATE_COMPOSING != mImeState);
+            //更新composing
+            mFloatingWindowTimer.postShowFloatingWindow();
+        } else if ((keyCode == KeyEvent.KEYCODE_ENTER && mInputModeSwitcher
+                .isEnterNoramlState())
+                || keyCode == KeyEvent.KEYCODE_DPAD_CENTER
+                || keyCode == KeyEvent.KEYCODE_SPACE) {
+            if (ComposingView.ComposingStatus.SHOW_STRING_LOWERCASE == cmpsvStatus) {
+                // 获取原始的输入拼音的字符
+                String str = mDecInfo.getOrigianlSplStr().toString();
+                if (!tryInputRawUnicode(str)) {
+                    // 发送文本给EditText
+                    commitResultText(str);
+                }
+            } else if (ComposingView.ComposingStatus.EDIT_PINYIN == cmpsvStatus) {
+                // 获取组合的输入拼音的字符（有可能存在选中的候选词）
+                String str = mDecInfo.getComposingStr();
+                // 对开头或者结尾为"unicode"的字符串进行转换
+                if (!tryInputRawUnicode(str)) {
+                    // 发送文本给EditText
+                    commitResultText(str);
+                }
+            } else {
+                // 发生 组合的输入拼音的字符（有可能存在选中的候选词） 给 EditText
+                commitResultText(mDecInfo.getComposingStr());
+            }
+            resetToIdleState(false);
+        } else if (keyCode == KeyEvent.KEYCODE_ENTER
+                && !mInputModeSwitcher.isEnterNoramlState()) {
+            String retStr;
+            if (!mDecInfo.isCandidatesListEmpty()) {
+                // 获取当前高亮的候选词
+                retStr = mDecInfo.getCurrentFullSent(mCandidatesContainer
+                        .getActiveCandiatePos());
+            } else {
+                // 获取组合的输入拼音的字符（有可能存在选中的候选词）
+                retStr = mDecInfo.getComposingStr();
+            }
+            // 发送文本给EditText
+            commitResultText(retStr);
+            // 发生ENTER键给EditText
+            sendKeyChar('\n');
+            resetToIdleState(false);
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+            resetToIdleState(false);
+            // 关闭输入法
+            requestHideSelf(0);
+            return true;
+        } else {
+            // 添加输入的拼音，然后进行词库查询，或者删除输入的拼音指定的字符或字符串，然后进行词库查询。
+            return processSurfaceChange(keyChar, keyCode);
+        }
+        return true;
+    }
+
+    /**
      * 当 mImeState == ImeState.STATE_COMPOSING 时的按键处理函数
      *
      * @param keyChar
@@ -872,7 +1008,9 @@ public class PinyinIME extends InputMethodService {
 
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             if (!mDecInfo.selectionFinished()) {
-                changeToStateInput(true);
+//                changeToStateInput(true);
+                //修改COMPOSING->CHOOSING
+                changeToStateChoosing(true);
             }
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
@@ -1959,7 +2097,8 @@ public class PinyinIME extends InputMethodService {
      * 输入法状态
      */
     public enum ImeState {
-        STATE_BYPASS, STATE_IDLE, STATE_INPUT, STATE_COMPOSING, STATE_PREDICT, STATE_APP_COMPLETION
+        STATE_BYPASS, STATE_IDLE, STATE_INPUT, STATE_COMPOSING,
+        STATE_PREDICT, STATE_APP_COMPLETION,STATE_CHOOSING
     }
 
     /**
@@ -2117,7 +2256,6 @@ public class PinyinIME extends InputMethodService {
 
             //bianjb--把记录的输入也要清空
             inputKeyChars.clear();
-
 
             resetCandidates();
         }
@@ -2350,6 +2488,7 @@ public class PinyinIME extends InputMethodService {
          * 重置候选词列表
          */
         public void resetCandidates() {
+            Log.e(TAG, "DecodeInfo::resetCandidates");
             mCandidatesList.clear();
             mTotalChoicesNum = 0;
 
@@ -2400,6 +2539,7 @@ public class PinyinIME extends InputMethodService {
          *
          * @param candId
          */
+        int index=0;
         private void chooseDecodingCandidate(int candId) {
             if (mImeState != ImeState.STATE_PREDICT) {
                 resetCandidates();
@@ -2413,7 +2553,9 @@ public class PinyinIME extends InputMethodService {
                                 mPyBuf = new byte[PY_STRING_MAX];
                             //bianjb--替换搜索字符串
                             String inputKey = mDecInfo.getInputKey();
-                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
+//                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
+                            ArrayList<char[]> candidateSplArr = getCandidateSplArr();
+                            char[] chars = candidateSplArr.get(index++);
                             if (chars == null) return;
                             for (int i = 0; i < chars.length; i++) {
                                 mPyBuf[i] = (byte) chars[i];
@@ -2490,6 +2632,7 @@ public class PinyinIME extends InputMethodService {
          * @param totalChoicesNum
          */
         private void updateDecInfoForSearch(int totalChoicesNum) {
+            Log.e(TAG, "DecodeInfo::updateDecInfoForSearch()::totalChoicesNum=" + totalChoicesNum);
             mTotalChoicesNum = totalChoicesNum;
             if (mTotalChoicesNum < 0) {
                 mTotalChoicesNum = 0;
@@ -2616,7 +2759,8 @@ public class PinyinIME extends InputMethodService {
                 List<String> newList = null;
                 if (ImeState.STATE_INPUT == mImeState
                         || ImeState.STATE_IDLE == mImeState
-                        || ImeState.STATE_COMPOSING == mImeState) {
+                        || ImeState.STATE_COMPOSING == mImeState
+                        || ImeState.STATE_CHOOSING == mImeState) {//添加状态处理--bianjb
                     newList = mIPinyinDecoderService.imGetChoiceList(
                             fetchStart, fetchSize, mFixedLen);
                 } else if (ImeState.STATE_PREDICT == mImeState) {
@@ -2635,6 +2779,8 @@ public class PinyinIME extends InputMethodService {
                         }
                     }
                 }
+                Log.e(TAG, "mCandidatesList=" + mCandidatesList);
+                Log.e(TAG, "newList=" + newList);
                 mCandidatesList.addAll(newList);
             } catch (RemoteException e) {
                 Log.w(TAG, "PinyinDecoderService died", e);

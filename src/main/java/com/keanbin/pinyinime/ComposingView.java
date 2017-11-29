@@ -179,7 +179,8 @@ public class ComposingView extends View {
 			mDecInfo.moveCursor(0);
 		}
 
-		measure(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		//把composing设置成填充父窗体，显示更多内容--bianjb
+		measure(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		requestLayout();
 		invalidate();
 	}

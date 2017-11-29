@@ -17,6 +17,7 @@
 package com.keanbin.pinyinime;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -30,10 +31,12 @@ import android.view.animation.AnimationSet;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.ViewFlipper;
 
 import com.keanbin.pinyinime.PinyinIME.DecodingInfo;
+
+import java.util.ArrayList;
 
 /**
  * Container used to host the two candidate views. When user drags on candidate
@@ -172,8 +175,9 @@ public class CandidatesContainer extends LinearLayout implements
 	 * Current page number in display. 当前显示的页码
 	 */
 	private int mCurrentPage = -1;
+    private LinearLayout mSplList;
 
-	public CandidatesContainer(Context context, AttributeSet attrs) {
+    public CandidatesContainer(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
 
@@ -187,7 +191,9 @@ public class CandidatesContainer extends LinearLayout implements
 		mRightArrowBtn.setOnTouchListener(this);
 
 		mFlipper = (ViewFlipper) findViewById(R.id.candidate_flipper);
-		mFlipper.setMeasureAllChildren(true);
+		//bianjb--获取拼音组合view
+        mSplList = (LinearLayout) findViewById(R.id.spl_list);
+        mFlipper.setMeasureAllChildren(true);
 
 		invalidate();
 		requestLayout();
@@ -232,9 +238,40 @@ public class CandidatesContainer extends LinearLayout implements
 
 		updateArrowStatus();
 		invalidate();
+
+		//bianjb--显示拼音组合
+		showSplList(decInfo.getCandidateSplArr());
 	}
 
-	/**
+    /**
+     *显示拼音组合
+     * @param candidateSplArr
+     */
+    private void showSplList(ArrayList<char[]> candidateSplArr) {
+        mSplList.removeAllViews();
+        for (int i=0; i<candidateSplArr.size(); i++) {
+            TextView view = new TextView(getContext());
+            view.setText(chars2Str(candidateSplArr.get(i)));
+            view.setTextSize(14);
+            view.setTextColor(Color.BLACK);
+            mSplList.addView(view);
+        }
+    }
+
+    /**
+     * char数组转字符串
+     * @param chars
+     * @return
+     */
+    private String chars2Str(char[] chars) {
+        String str = "";
+        for (int i=0; i<chars.length; i++) {
+            str += chars[i];
+        }
+        return str;
+    }
+
+    /**
 	 * 获取当前的页码
 	 * 
 	 * @return
@@ -327,6 +364,7 @@ public class CandidatesContainer extends LinearLayout implements
 		if (null == mDecInfo)
 			return false;
 
+		//如果是第0页就返回false，光标应该向上移动到composing--bianjb
 		if (mFlipper.isFlipping() || 0 == mCurrentPage)
 			return false;
 
