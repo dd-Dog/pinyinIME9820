@@ -678,7 +678,7 @@ public class PinyinIME extends InputMethodService {
                     mCandidatesContainer.enableActiveHighlight(false);
                     changeToStateChoosing(true);
                     //此时光标上移到choosing view
-                    
+                    mCandidatesContainer.splGetCursor();
 //                    changeToStateComposing(true);
 //                    updateComposingText(true);
                 }
@@ -856,7 +856,7 @@ public class PinyinIME extends InputMethodService {
      */
     private boolean processStateChoosing(int keyChar, int keyCode,
                                               KeyEvent event, boolean realAction) {
-        Log.d(TAG, "processStateChoosing()");
+        Log.d(TAG, "processStateChoosing(), keyCode=" + keyCode);
         if (!realAction)
             return true;
 
@@ -900,7 +900,6 @@ public class PinyinIME extends InputMethodService {
 
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            Log.e(TAG, "change to biao");
             //重新查询词库
             mDecInfo.chooseDecodingCandidate(-1);
             //更新候选词UI
@@ -908,6 +907,11 @@ public class PinyinIME extends InputMethodService {
                     ImeState.STATE_COMPOSING != mImeState);
             //更新composing
             mFloatingWindowTimer.postShowFloatingWindow();
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                mCandidatesContainer.backwardSplCursor();
+            }else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                mCandidatesContainer.forwardSplCursor();
+            }
         } else if ((keyCode == KeyEvent.KEYCODE_ENTER && mInputModeSwitcher
                 .isEnterNoramlState())
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER
