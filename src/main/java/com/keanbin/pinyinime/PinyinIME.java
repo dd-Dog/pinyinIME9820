@@ -678,7 +678,7 @@ public class PinyinIME extends InputMethodService {
                     mCandidatesContainer.enableActiveHighlight(false);
                     changeToStateChoosing(true);
                     //此时光标上移到choosing view
-                    mCandidatesContainer.splGetCursor();
+                    mCandidatesContainer.updateSplCursor();
 //                    changeToStateComposing(true);
 //                    updateComposingText(true);
                 }
@@ -726,6 +726,11 @@ public class PinyinIME extends InputMethodService {
                 return true;
             // 选择高亮的候选词
             chooseCandidate(-1);
+            //bianjb--清除候选拼音组合
+            mCandidatesContainer.clearSplList();
+            mDecInfo.clearSurface();
+            mDecInfo.clearInputKeys();
+            mDecInfo.clearnCandidateSplArr();
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (!realAction)
@@ -900,18 +905,20 @@ public class PinyinIME extends InputMethodService {
 
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            //重新查询词库
-            mDecInfo.chooseDecodingCandidate(-1);
-            //更新候选词UI
-            mCandidatesContainer.showCandidates(mDecInfo,
-                    ImeState.STATE_COMPOSING != mImeState);
             //更新composing
-            mFloatingWindowTimer.postShowFloatingWindow();
+            updateComposingText(true);
+//            mFloatingWindowTimer.postShowFloatingWindow();
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 mCandidatesContainer.backwardSplCursor();
             }else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 mCandidatesContainer.forwardSplCursor();
             }
+            //重新查询词库
+            mDecInfo.chooseDecodingCandidate(-1);
+            //更新候选词UI
+            mCandidatesContainer.showCandidates(mDecInfo,
+                    ImeState.STATE_COMPOSING != mImeState);
+            mCandidatesContainer.updateSplCursor();
         } else if ((keyCode == KeyEvent.KEYCODE_ENTER && mInputModeSwitcher
                 .isEnterNoramlState())
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER
@@ -932,9 +939,14 @@ public class PinyinIME extends InputMethodService {
                     commitResultText(str);
                 }
             } else {
-                // 发生 组合的输入拼音的字符（有可能存在选中的候选词） 给 EditText
+                // 发送组合的输入拼音的字符（有可能存在选中的候选词） 给 EditText
                 commitResultText(mDecInfo.getComposingStr());
             }
+            //bianjb--清除候选拼音组合
+            mCandidatesContainer.clearSplList();
+            mDecInfo.clearSurface();
+            mDecInfo.clearInputKeys();
+            mDecInfo.clearnCandidateSplArr();
             resetToIdleState(false);
         } else if (keyCode == KeyEvent.KEYCODE_ENTER
                 && !mInputModeSwitcher.isEnterNoramlState()) {
@@ -2295,6 +2307,24 @@ public class PinyinIME extends InputMethodService {
             inputKeyChars.add(c);
         }
 
+        /**
+         * 删除mSurface
+         */
+        public void clearSurface() {
+            mSurface.delete(0, mSurface.length());
+        }
+        /**
+         * 清除输入
+         */
+        public void clearInputKeys() {
+            inputKeyChars.clear();
+
+        }
+
+        /**
+         * 获取输入的按键列表
+         * @return
+         */
         public String getInputKey() {
             String key = "";
             for (int i = 0; i < inputKeyChars.size(); i++) {
@@ -2303,8 +2333,18 @@ public class PinyinIME extends InputMethodService {
             return key;
         }
 
+        /**
+         * bianjb--获取匹配的所有拼音组合
+         */
         public void updateCandidateSplArr() {
             candidateSplArr = T92Pinyin.getSplStrs(getInputKey());
+        }
+
+        /**
+         * bianjb--清除所有拼音组合
+         */
+        public void clearnCandidateSplArr() {
+            candidateSplArr.clear();
         }
 
         public ArrayList<char[]> getCandidateSplArr() {
@@ -2559,7 +2599,7 @@ public class PinyinIME extends InputMethodService {
                             String inputKey = mDecInfo.getInputKey();
 //                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
                             ArrayList<char[]> candidateSplArr = getCandidateSplArr();
-                            char[] chars = candidateSplArr.get(index++);
+                            char[] chars = candidateSplArr.get(mCandidatesContainer.getCurSplCursor());
                             if (chars == null) return;
                             for (int i = 0; i < chars.length; i++) {
                                 mPyBuf[i] = (byte) chars[i];

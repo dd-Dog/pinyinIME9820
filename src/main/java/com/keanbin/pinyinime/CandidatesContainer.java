@@ -24,6 +24,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -250,12 +251,17 @@ public class CandidatesContainer extends LinearLayout implements
      */
     private int mCurrSplCursorPos = 0;
 
-    public void splGetCursor() {
+    public void updateSplCursor() {
+        Log.e(TAG, "mCurrSplCursorPos=" + mCurrSplCursorPos);
         for (int i = 0; i < mSplList.getChildCount(); i++) {
             TextView child = (TextView) mSplList.getChildAt(i);
             child.setBackgroundColor(mCurrSplCursorPos == i ? Color.BLACK : Color.WHITE);
             child.setTextColor(mCurrSplCursorPos == i ? Color.WHITE : Color.BLACK);
         }
+    }
+
+    public int getCurSplCursor() {
+        return mCurrSplCursorPos;
     }
 
     /**
@@ -265,10 +271,9 @@ public class CandidatesContainer extends LinearLayout implements
     public void backwardSplCursor() {
         Log.e(TAG, "backwardSplCursor() mCurrSplCursorPos=" + mCurrSplCursorPos);
         if (mCurrSplCursorPos <= 0) {
-            return;
+        } else {
+            mCurrSplCursorPos--;
         }
-        mCurrSplCursorPos --;
-        splGetCursor();
     }
 
     /**
@@ -277,11 +282,10 @@ public class CandidatesContainer extends LinearLayout implements
      */
     public void forwardSplCursor() {
         Log.e(TAG, "forwardSplCursor() mCurrSplCursorPos=" + mCurrSplCursorPos);
-        if (mCurrSplCursorPos >= mSplList.getChildCount()) {
-            return;
+        if (mCurrSplCursorPos >= mSplList.getChildCount() - 1) {
+        } else {
+            mCurrSplCursorPos++;
         }
-        mCurrSplCursorPos++;
-        splGetCursor();
     }
 
     /**
@@ -298,8 +302,17 @@ public class CandidatesContainer extends LinearLayout implements
             view.setText(chars2Str(candidateSplArr.get(i)));
             view.setTextSize(14);
             view.setTextColor(Color.BLACK);
+            view.setPadding(1,0, 1, 0);
             mSplList.addView(view);
         }
+    }
+
+    /**
+     * 清除所有候选拼音组合
+     */
+    public void clearSplList() {
+        mSplList.removeAllViews();
+        mCurrSplCursorPos = 0;
     }
 
     /**

@@ -23,6 +23,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.FontMetricsInt;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -111,6 +112,7 @@ public class ComposingView extends View {
 
 	private int mFontSize; // 字体大小
 
+	private static final String TAG = "ComposingView";
 	/**
 	 * 获拼音字符串的状态
 	 */
@@ -291,6 +293,7 @@ public class ComposingView extends View {
 	 * @param canvas
 	 */
 	private void drawForPinyin(Canvas canvas) {
+		Log.e(TAG, "drawForPinyin");
 		float x, y;
 		x = getPaddingLeft() + LEFT_RIGHT_MARGIN;
 		y = -mFmi.top + getPaddingTop();
