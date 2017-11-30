@@ -34,6 +34,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -66,7 +67,7 @@ public class PinyinIME extends InputMethodService {
      * If is is true, IME will simulate key events for delete key, and send the
      * events back to the application.
      */
-    private static final boolean SIMULATE_KEY_DELETE = true;
+    private static final boolean SIMULATE_KEY_DELETE = false;
 
     /**
      * Necessary environment configurations like screen size for this IME.
@@ -75,6 +76,7 @@ public class PinyinIME extends InputMethodService {
     private Environment mEnvironment;
 
     /**
+     * false
      * Used to switch input mode. 输入法状态变换器
      */
     private InputModeSwitcher mInputModeSwitcher;
@@ -396,7 +398,7 @@ public class PinyinIME extends InputMethodService {
             } else if (mImeState == ImeState.STATE_COMPOSING) {
                 return processStateEditComposing(keyChar, keyCode, event,
                         realAction);
-            }else if (mImeState == ImeState.STATE_CHOOSING) {
+            } else if (mImeState == ImeState.STATE_CHOOSING) {
                 return processStateChoosing(keyChar, keyCode, event, realAction);
             }
         } else {// 符号处理
@@ -547,21 +549,31 @@ public class PinyinIME extends InputMethodService {
             // 对输入的拼音进行查询
             chooseAndUpdate(-1);
             return true;
-        } else if (keyCode == KeyEvent.KEYCODE_DEL) {
-            if (!realAction)
-                return true;
+//        } else if (keyCode == KeyEvent.KEYCODE_DEL) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {//响应返回按键当作删除按键
+            InputConnection ic = getCurrentInputConnection();
+            CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+            if (!realAction && TextUtils.isEmpty(textBeforeCursor)) {
+                return false;
+            }
+            if (TextUtils.isEmpty(textBeforeCursor)) {
+                return false;
+            }
             if (SIMULATE_KEY_DELETE) {
                 // 模拟删除键发送给 EditText
                 simulateKeyEventDownUp(keyCode);
             } else {
                 // 发送删除一个字符的操作给 EditText
-                getCurrentInputConnection().deleteSurroundingText(1, 0);
+                if (realAction) {
+                    Log.e(TAG, "processStateIdle()::textBeforeCursor=" + textBeforeCursor);
+                    getCurrentInputConnection().deleteSurroundingText(1, 0);
+
+                }
             }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_ENTER) {
             if (!realAction)
                 return true;
-
             // 发送 ENTER 键给 EditText
             sendKeyChar('\n');
             return true;
@@ -745,6 +757,7 @@ public class PinyinIME extends InputMethodService {
 
     /**
      * 切换至选择组合拼音字符串的状态
+     *
      * @param updateUi
      */
     private void changeToStateChoosing(boolean updateUi) {
@@ -860,7 +873,7 @@ public class PinyinIME extends InputMethodService {
      * @return
      */
     private boolean processStateChoosing(int keyChar, int keyCode,
-                                              KeyEvent event, boolean realAction) {
+                                         KeyEvent event, boolean realAction) {
         Log.d(TAG, "processStateChoosing(), keyCode=" + keyCode);
         if (!realAction)
             return true;
@@ -910,7 +923,7 @@ public class PinyinIME extends InputMethodService {
 //            mFloatingWindowTimer.postShowFloatingWindow();
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 mCandidatesContainer.backwardSplCursor();
-            }else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 mCandidatesContainer.forwardSplCursor();
             }
             //重新查询词库
@@ -1206,8 +1219,8 @@ public class PinyinIME extends InputMethodService {
         if (null == ic)
             return;
 
-        ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, keyCode));
-        ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, keyCode));
+        ic.sendKeyEvent(new KeyEvent(KeyEvent.KEYCODE_DEL, keyCode));
+//        ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, keyCode));
     }
 
     /**
@@ -2114,7 +2127,7 @@ public class PinyinIME extends InputMethodService {
      */
     public enum ImeState {
         STATE_BYPASS, STATE_IDLE, STATE_INPUT, STATE_COMPOSING,
-        STATE_PREDICT, STATE_APP_COMPLETION,STATE_CHOOSING
+        STATE_PREDICT, STATE_APP_COMPLETION, STATE_CHOOSING
     }
 
     /**
@@ -2313,6 +2326,7 @@ public class PinyinIME extends InputMethodService {
         public void clearSurface() {
             mSurface.delete(0, mSurface.length());
         }
+
         /**
          * 清除输入
          */
@@ -2323,6 +2337,7 @@ public class PinyinIME extends InputMethodService {
 
         /**
          * 获取输入的按键列表
+         *
          * @return
          */
         public String getInputKey() {
@@ -2583,7 +2598,8 @@ public class PinyinIME extends InputMethodService {
          *
          * @param candId
          */
-        int index=0;
+        int index = 0;
+
         private void chooseDecodingCandidate(int candId) {
             if (mImeState != ImeState.STATE_PREDICT) {
                 resetCandidates();
@@ -2599,7 +2615,8 @@ public class PinyinIME extends InputMethodService {
                             String inputKey = mDecInfo.getInputKey();
 //                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
                             ArrayList<char[]> candidateSplArr = getCandidateSplArr();
-                            char[] chars = candidateSplArr.get(mCandidatesContainer.getCurSplCursor());
+                            char[] chars = candidateSplArr.get(mCandidatesContainer
+                                    .getCurSplCursor());
                             if (chars == null) return;
                             for (int i = 0; i < chars.length; i++) {
                                 mPyBuf[i] = (byte) chars[i];

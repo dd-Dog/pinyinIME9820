@@ -28,6 +28,8 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.util.Log;
+import android.view.KeyEvent;
 
 /**
  * Setting activity of Pinyin IME. 设置页面
@@ -78,6 +80,18 @@ public class SettingsActivity extends PreferenceActivity implements
 	protected void onDestroy() {
 		Settings.releaseInstance();
 		super.onDestroy();
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		Log.e(TAG, "onKeyDown");
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		Log.e(TAG, "onKeyUp");
+		return super.onKeyUp(keyCode, event);
 	}
 
 	@Override
