@@ -51,7 +51,7 @@ public class CandidateView extends View {
     /**
      * The minimum width to show a item. 一个item最小的宽度
      */
-    private static final float MIN_ITEM_WIDTH = 14;
+    private static final float MIN_ITEM_WIDTH = 16;
 
     /**
      * Suspension points used to display long items. 省略号
@@ -296,7 +296,7 @@ public class CandidateView extends View {
             + "defaultHeight=" + getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
 
         setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
-                14);
+                18);
         if (mOldWidth != getMeasuredWidth() || mOldHeight != getMeasuredHeight()) {
             onSizeChanged();
         }
@@ -607,7 +607,9 @@ public class CandidateView extends View {
 
         int pStart = mDecInfo.mPageStart.get(mPageNo);
         int pSize = mDecInfo.mPageStart.get(mPageNo + 1) - pStart;
-        float candMargin = mCandidateMargin + mCandidateMarginExtra;
+//        float candMargin = mCandidateMargin + mCandidateMarginExtra;
+        //设置margin为0,缩小间距 --bianjb
+        float candMargin = -1;
         if (mActiveCandInPage > pSize - 1) {
             mActiveCandInPage = pSize - 1;
         }
@@ -678,7 +680,7 @@ public class CandidateView extends View {
 
             // Draw the separator between candidates.
             // 画分隔符
-            xPos += drawVerticalSeparator(canvas, xPos);
+//            xPos += drawVerticalSeparator(canvas, xPos);
         }
 
         // Update the arrow status of the container.

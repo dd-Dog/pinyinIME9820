@@ -300,7 +300,7 @@ public class CandidatesContainer extends LinearLayout implements
         for (int i = 0; i < candidateSplArr.size(); i++) {
             TextView view = new TextView(getContext());
             view.setText(chars2Str(candidateSplArr.get(i)));
-            view.setTextSize(14);
+            view.setTextSize(16);
             view.setTextColor(Color.BLACK);
             view.setPadding(1,0, 1, 0);
             mSplList.addView(view);
@@ -357,7 +357,7 @@ public class CandidatesContainer extends LinearLayout implements
         int measuredHeight = getPaddingTop();
 //		measuredHeight += env.getHeightForCandidates();
         //这里把高度设置为固定值16px--bianjb
-        measuredHeight = 30;
+        measuredHeight = 34;
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(measuredHeight,

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.keanbin.pinyinime.CandidatesContainer xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/candidates_container"
-    android:layout_width="0dip"
-    android:layout_height="0dip"
-    android:background="@drawable/cands_container_bg"
-    android:orientation="vertical" >
+                                           android:id="@+id/candidates_container"
+                                           android:layout_width="0dip"
+                                           android:layout_height="0dip"
+                                           android:background="@drawable/cands_container_bg"
+                                           android:orientation="vertical">
 
     <ImageButton
         android:id="@+id/arrow_left_btn"
@@ -13,7 +13,7 @@
         android:layout_alignParentLeft="true"
         android:background="@drawable/arrow_bg"
         android:clickable="true"
-        android:src="@drawable/arrow_left" />
+        android:src="@drawable/arrow_left"/>
 
     <ImageButton
         android:id="@+id/arrow_right_btn"
@@ -22,34 +22,35 @@
         android:layout_alignParentRight="true"
         android:background="@drawable/arrow_bg"
         android:clickable="true"
-        android:src="@drawable/arrow_right" />
+        android:src="@drawable/arrow_right"/>
 
     <LinearLayout
-        android:layout_width="match_parent"
         android:id="@+id/spl_list"
+        android:layout_width="match_parent"
+        android:layout_height="15px"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:layout_height="15px">
+        android:orientation="horizontal">
 
     </LinearLayout>
+
     <ViewFlipper
         android:id="@+id/candidate_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toLeftOf="@id/arrow_right_btn"
-        android:layout_toRightOf="@id/arrow_left_btn" >
+        android:layout_toRightOf="@id/arrow_left_btn">
 
         <view
             android:id="@+id/candidate_view1"
+            class="com.keanbin.pinyinime.CandidateView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            class="com.keanbin.pinyinime.CandidateView" />
+            android:layout_height="match_parent"/>
 
         <view
             android:id="@+id/candidate_view2"
+            class="com.keanbin.pinyinime.CandidateView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            class="com.keanbin.pinyinime.CandidateView" />
+            android:layout_height="match_parent"/>
     </ViewFlipper>
 
 </com.keanbin.pinyinime.CandidatesContainer>

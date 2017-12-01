@@ -16,6 +16,7 @@
 
 package com.keanbin.pinyinime;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -383,10 +384,17 @@ public class PinyinIME extends InputMethodService {
             keyChar = '\'';
         }
 
-        if (mInputModeSwitcher.isEnglishWithSkb()) {// 英语软键盘处理
-            return mImEn.processKey(getCurrentInputConnection(), event,
-                    mInputModeSwitcher.isEnglishUpperCaseWithSkb(), realAction);
-        } else if (mInputModeSwitcher.isChineseText()) {// 中文输入法模式
+//        if (mInputModeSwitcher.isEnglishWithSkb()) {// 英语软键盘处理
+        if (mInputModeSwitcher.isEnglishMode()) {
+            if (mImeState == ImeState.STATE_IDLE) {
+                return processStateEnglishIdle(keyChar, keyCode, event, realAction);
+            } else if (mImeState == ImeState.STATE_INPUT) {
+                return processStateEnglishInput(keyChar, keyCode, event, realAction);
+            }
+//            return mImEn.processKey(getCurrentInputConnection(), event,
+//                    mInputModeSwitcher.isEnglishUpperCaseWithSkb(), realAction);
+//        } else if (mInputModeSwitcher.isChineseText()) {// 中文输入法模式
+        } else if (mInputModeSwitcher.isChineseMode()) {
             if (mImeState == ImeState.STATE_IDLE
                     || mImeState == ImeState.STATE_APP_COMPLETION) {
                 mImeState = ImeState.STATE_IDLE;
@@ -407,7 +415,67 @@ public class PinyinIME extends InputMethodService {
                 commitResultText(String.valueOf((char) keyChar));
             }
         }
+        return false;
+    }
 
+    /**
+     * 英文输入时，IDLE状态下按键处理
+     *
+     * @param keyChar
+     * @param keyCode
+     * @param event
+     * @param realAction
+     * @return
+     */
+    private boolean processStateEnglishIdle(int keyChar, int keyCode,
+                                            KeyEvent event, boolean realAction) {
+        Log.d(TAG, "processStateEnglishIdle");
+        if (realAction) {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                mDecInfo.setmCandidatesList(keyChar);
+                chooseAndUpdate(1);
+                changeToStateInput(true);
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                // 发送删除一个字符的操作给 EditText
+                InputConnection ic = getCurrentInputConnection();
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                if (TextUtils.isEmpty(textBeforeCursor)) {
+                    return false;
+                }
+                getCurrentInputConnection().deleteSurroundingText(1, 0);
+                return true;
+            }
+        }else {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                //英文输入状态下，0-9这几个按键的down事件返回true，不能被作其它处理--bianjb
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 英文输入时，INPUT状态下按键处理--bianjb
+     *
+     * @param keyChar
+     * @param keyCode
+     * @param event
+     * @param realAction
+     * @return
+     */
+    private boolean processStateEnglishInput(int keyChar, int keyCode, KeyEvent event, boolean
+            realAction) {
+        Log.d(TAG, "processStateEnglishInput");
+        if (!realAction) {
+            return true;
+        }
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            mDecInfo.setmCandidatesList(keyChar);
+            chooseAndUpdate(1);
+            return true;
+        }
         return false;
     }
 
@@ -420,8 +488,10 @@ public class PinyinIME extends InputMethodService {
      * @param realAction
      * @return
      */
+
     private boolean processFunctionKeys(int keyCode, boolean realAction) {
-        Log.d(TAG, "processFunctionKeys()");
+        Log.d(TAG, "processFunctionKeys(), keyCode=" + keyCode);
+
         // Back key is used to dismiss all popup UI in a soft keyboard.
         // 后退键的处理。副软键盘弹出框显示的时候，如果realAction为true，那么就调用dismissPopupSkb（）隐藏副软键盘弹出框，显示主软键盘视图。
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -431,11 +501,32 @@ public class PinyinIME extends InputMethodService {
             }
         }
 
+        //bianjb--添加中英文切换，'#'切换
+        if (keyCode == KeyEvent.KEYCODE_POUND) {
+            if (!realAction) {
+                return true;
+            }
+            mInputModeSwitcher.toggleNextState();
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_STAR) {
+            if (!realAction) {
+                return true;
+            }
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
+                mInputModeSwitcher.toggleNextState();
+            } else {
+                //如果当前是输入中文或者英文状态就切换到输入字符状态
+                mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_SYMBOL);
+            }
+            return true;
+        }
+
         // Chinese related input is handle separately.
         // 中文相关输入是单独处理的，不在这边处理。
         if (mInputModeSwitcher.isChineseText()) {
             return false;
         }
+
 
         if (null != mCandidatesContainer && mCandidatesContainer.isShown()
                 && !mDecInfo.isCandidatesListEmpty()) {// 候选词视图显示的时候
@@ -485,8 +576,7 @@ public class PinyinIME extends InputMethodService {
             }
 
             // 在预报状态下的删除键处理
-            if (keyCode == KeyEvent.KEYCODE_DEL
-                    && ImeState.STATE_PREDICT == mImeState) {
+            if (keyCode == KeyEvent.KEYCODE_DEL && ImeState.STATE_PREDICT == mImeState) {
                 if (!realAction)
                     return true;
                 resetToIdleState(false);
@@ -567,7 +657,6 @@ public class PinyinIME extends InputMethodService {
                 if (realAction) {
                     Log.e(TAG, "processStateIdle()::textBeforeCursor=" + textBeforeCursor);
                     getCurrentInputConnection().deleteSurroundingText(1, 0);
-
                 }
             }
             return true;
@@ -1205,7 +1294,8 @@ public class PinyinIME extends InputMethodService {
         if (null != mSkbContainer && mSkbContainer.isShown()) {
             mSkbContainer.toggleCandidateMode(true);
         }
-        showCandidateWindow(true);
+        boolean chineseMode = mInputModeSwitcher.isChineseMode();
+        showCandidateWindow(chineseMode?true: false);
     }
 
     /**
@@ -1309,7 +1399,8 @@ public class PinyinIME extends InputMethodService {
         Log.d(TAG, "chooseAndUpdate()");
 
         // 不是中文输入法状态
-        if (!mInputModeSwitcher.isChineseText()) {
+//        if (!mInputModeSwitcher.isChineseText()) {
+        if (!mInputModeSwitcher.isChineseMode()) {
             String choice = mDecInfo.getCandidate(candId);
             if (null != choice) {
                 commitResultText(choice);
@@ -1426,11 +1517,20 @@ public class PinyinIME extends InputMethodService {
 
     @Override
     public View onCreateCandidatesView() {
+        Log.d(TAG, "onCreateCandidatesView.");
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "onCreateCandidatesView.");
         }
 
         LayoutInflater inflater = getLayoutInflater();
+
+        /**
+         * 如果不是中文输入状态，加载不同的candidateview--bianjb
+         */
+//        if (!mInputModeSwitcher.isChineseMode()) {
+//            View view = inflater.inflate(R.layout.candidates_english, null);
+//            return view;
+//        }
 
         // 设置显示输入拼音字符串View的集装箱
         // Inflate the floating container view
@@ -1567,6 +1667,8 @@ public class PinyinIME extends InputMethodService {
             return;
         }
 
+        //不再显示composingview--bianjb
+        showComposingView = false;
         updateComposingText(showComposingView);
         mCandidatesContainer.showCandidates(mDecInfo,
                 ImeState.STATE_COMPOSING != mImeState);
@@ -2131,6 +2233,32 @@ public class PinyinIME extends InputMethodService {
     }
 
     /**
+     * 英文输入操作对象
+     */
+    public class EnglishInfo {
+        /**
+         * 保存输入字符的数组
+         */
+        private ArrayList<Character> inputChars;
+        /**
+         * 一次最多输入6个字符
+         */
+        public static final int MAX_ENGLISH_INPUT = 6;
+
+        public EnglishInfo() {
+            this.inputChars = new ArrayList<>();
+        }
+
+        public void addInputChar(char c) {
+            inputChars.add(c);
+        }
+
+        public ArrayList<Character> getInputChars() {
+            return inputChars;
+        }
+    }
+
+    /**
      * 词库解码操作对象
      *
      * @author keanbin
@@ -2329,6 +2457,7 @@ public class PinyinIME extends InputMethodService {
 
         /**
          * 清除输入
+         * bianjb
          */
         public void clearInputKeys() {
             inputKeyChars.clear();
@@ -2336,7 +2465,38 @@ public class PinyinIME extends InputMethodService {
         }
 
         /**
+         * 设置英文状态下候选词列表
+         * bianjb
+         */
+        public void setmCandidatesList(int input) {
+            mCandidatesList.clear();
+            switch (input) {
+                case 'a':
+                    mCandidatesList.add((char) input + "");
+                    mCandidatesList.add((char) (input + 1) + "");
+                    mCandidatesList.add((char) (input + 2) + "");
+                    Log.e(TAG, "mCandidatesList=" + mCandidatesList);
+                    break;
+                case 'd':
+                    break;
+                case 'g':
+                    break;
+                case 'j':
+                    break;
+                case 'm':
+                    break;
+                case 'p':
+                    break;
+                case 't':
+                    break;
+                case 'w':
+                    break;
+            }
+        }
+
+        /**
          * 获取输入的按键列表
+         * bianjb
          *
          * @return
          */
@@ -2615,6 +2775,7 @@ public class PinyinIME extends InputMethodService {
                             String inputKey = mDecInfo.getInputKey();
 //                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
                             ArrayList<char[]> candidateSplArr = getCandidateSplArr();
+                            Log.e(TAG, "mCandidatesContainer=" + mCandidatesContainer);
                             char[] chars = candidateSplArr.get(mCandidatesContainer
                                     .getCurSplCursor());
                             if (chars == null) return;
