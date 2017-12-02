@@ -297,14 +297,27 @@ public class CandidatesContainer extends LinearLayout implements
     private void showSplList(ArrayList<char[]> candidateSplArr) {
         Log.e(TAG, "showSplList");
         mSplList.removeAllViews();
+        if (candidateSplArr == null || candidateSplArr.size() ==0) {
+            mSplList.setVisibility(View.GONE);
+            return;
+        }
+        mSplList.setVisibility(View.VISIBLE);
         for (int i = 0; i < candidateSplArr.size(); i++) {
             TextView view = new TextView(getContext());
             view.setText(chars2Str(candidateSplArr.get(i)));
             view.setTextSize(16);
             view.setTextColor(Color.BLACK);
-            view.setPadding(1,0, 1, 0);
+            view.setPadding(1, 0, 1, 0);
             mSplList.addView(view);
         }
+    }
+
+    /**
+     * 设置候选拼音组合 的view是否显示
+     * @param visibility
+     */
+    public void setSplListVisibility(int visibility) {
+        mSplList.setVisibility(visibility);
     }
 
     /**
@@ -355,9 +368,9 @@ public class CandidatesContainer extends LinearLayout implements
         Environment env = Environment.getInstance();
         int measuredWidth = env.getScreenWidth();
         int measuredHeight = getPaddingTop();
-//		measuredHeight += env.getHeightForCandidates();
-        //这里把高度设置为固定值16px--bianjb
-        measuredHeight = 34;
+		measuredHeight += env.getHeightForCandidates();
+        //动态改变candidatesview的高度--bianjb
+        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14:0);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(measuredHeight,

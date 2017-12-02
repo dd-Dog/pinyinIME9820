@@ -289,14 +289,14 @@ public class CandidateView extends View {
         int mOldHeight = getMeasuredHeight();
 
         //设置高度为14px
-//        setMeasuredDimension(
-//                getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
-//                getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
-        Log.e(TAG, "onMeasure:: defaultWidth=" +getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec)
-            + "defaultHeight=" + getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
-
-        setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
-                18);
+        setMeasuredDimension(
+                getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
+                getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
+//        Log.e(TAG, "onMeasure:: defaultWidth=" +getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec)
+//            + "defaultHeight=" + getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
+//
+//        setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
+//                18);
         if (mOldWidth != getMeasuredWidth() || mOldHeight != getMeasuredHeight()) {
             onSizeChanged();
         }

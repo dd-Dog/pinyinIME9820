@@ -433,7 +433,11 @@ public class PinyinIME extends InputMethodService {
         if (realAction) {
             if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
                 mDecInfo.setmCandidatesList(keyChar);
-                chooseAndUpdate(1);
+                mDecInfo.mPageStart.clear();
+                mDecInfo.mPageStart.add(0);
+                mDecInfo.mCnToPage.clear();
+                mDecInfo.mCnToPage.add(0);
+//                chooseAndUpdate(1);
                 changeToStateInput(true);
                 return true;
             }
@@ -447,7 +451,7 @@ public class PinyinIME extends InputMethodService {
                 getCurrentInputConnection().deleteSurroundingText(1, 0);
                 return true;
             }
-        }else {
+        } else {
             if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
                 //英文输入状态下，0-9这几个按键的down事件返回true，不能被作其它处理--bianjb
                 return true;
@@ -471,11 +475,37 @@ public class PinyinIME extends InputMethodService {
         if (!realAction) {
             return true;
         }
-        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
-            mDecInfo.setmCandidatesList(keyChar);
-            chooseAndUpdate(1);
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            resetToIdleState(true);
             return true;
         }
+
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            mDecInfo.setmCandidatesList(keyChar);
+            mDecInfo.mPageStart.clear();
+            mDecInfo.mPageStart.add(0);
+            mDecInfo.mCnToPage.clear();
+            mDecInfo.mCnToPage.add(0);
+            chooseAndUpdate(1);
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                // 高亮位置向上一个候选词移动或者移动到上一页的最后一个候选词的位置。
+                mCandidatesContainer.activeCurseBackward();
+
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                mCandidatesContainer.activeCurseForward();
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+
+            }
+            return true;
+        }
+
         return false;
     }
 
@@ -507,6 +537,8 @@ public class PinyinIME extends InputMethodService {
                 return true;
             }
             mInputModeSwitcher.toggleNextState();
+            mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
+                    View.VISIBLE : View.GONE);
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_STAR) {
             if (!realAction) {
@@ -518,12 +550,15 @@ public class PinyinIME extends InputMethodService {
                 //如果当前是输入中文或者英文状态就切换到输入字符状态
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_SYMBOL);
             }
+            mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
+                    View.VISIBLE : View.GONE);
             return true;
         }
 
         // Chinese related input is handle separately.
         // 中文相关输入是单独处理的，不在这边处理。
-        if (mInputModeSwitcher.isChineseText()) {
+//        if (mInputModeSwitcher.isChineseText()) {
+        if (mInputModeSwitcher.isChineseMode()) {
             return false;
         }
 
@@ -627,6 +662,7 @@ public class PinyinIME extends InputMethodService {
      * @param realAction
      * @return
      */
+
     private boolean processStateIdle(int keyChar, int keyCode, KeyEvent event,
                                      boolean realAction) {
         Log.d(TAG, "processStateIdle()");
@@ -1295,7 +1331,7 @@ public class PinyinIME extends InputMethodService {
             mSkbContainer.toggleCandidateMode(true);
         }
         boolean chineseMode = mInputModeSwitcher.isChineseMode();
-        showCandidateWindow(chineseMode?true: false);
+        showCandidateWindow(chineseMode ? true : false);
     }
 
     /**
@@ -1656,7 +1692,11 @@ public class PinyinIME extends InputMethodService {
             Log.d(TAG, "Candidates window is shown. Parent = "
                     + mCandidatesContainer);
         }
-
+        //在这里判断当前如果是预报状态，不显示候选拼音组合--bianjb
+        if (mImeState == ImeState.STATE_PREDICT) {
+            mCandidatesContainer.setSplListVisibility(View.GONE);
+        }
+        setCandidatesViewShown(false);
         setCandidatesViewShown(true);
 
         if (null != mSkbContainer)
@@ -2470,28 +2510,28 @@ public class PinyinIME extends InputMethodService {
          */
         public void setmCandidatesList(int input) {
             mCandidatesList.clear();
+            int base = 0;
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_UPPERCASE) {
+                base = -32;
+            }
             switch (input) {
                 case 'a':
-                    mCandidatesList.add((char) input + "");
-                    mCandidatesList.add((char) (input + 1) + "");
-                    mCandidatesList.add((char) (input + 2) + "");
-                    Log.e(TAG, "mCandidatesList=" + mCandidatesList);
-                    break;
                 case 'd':
-                    break;
                 case 'g':
-                    break;
                 case 'j':
-                    break;
                 case 'm':
-                    break;
-                case 'p':
-                    break;
                 case 't':
-                    break;
+                case 'p':
                 case 'w':
+                    mCandidatesList.add((char) (input + base) + "");
+                    mCandidatesList.add((char) (input + 1 + base) + "");
+                    mCandidatesList.add((char) (input + 2 + base) + "");
                     break;
             }
+            if (input == 'p' || input == 'w') {
+                mCandidatesList.add((char) (input + 3 + base) + "");
+            }
+            Log.e(TAG, "mCandidatesList=" + mCandidatesList);
         }
 
         /**
@@ -3315,6 +3355,10 @@ public class PinyinIME extends InputMethodService {
                     ", mCnToPage=" + mCnToPage +
                     ", mPosDelSpl=" + mPosDelSpl +
                     ", mIsPosInSpl=" + mIsPosInSpl +
+                    ", inputKey=" + inputKey +
+                    ", candidateSplArr=" + candidateSplArr +
+                    ", inputKeyChars=" + inputKeyChars +
+                    ", index=" + index +
                     '}';
         }
 
