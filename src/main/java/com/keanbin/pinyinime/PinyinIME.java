@@ -437,7 +437,6 @@ public class PinyinIME extends InputMethodService {
                 mDecInfo.mPageStart.add(0);
                 mDecInfo.mCnToPage.clear();
                 mDecInfo.mCnToPage.add(0);
-//                chooseAndUpdate(1);
                 changeToStateInput(true);
                 return true;
             }
@@ -487,7 +486,7 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mPageStart.add(0);
             mDecInfo.mCnToPage.clear();
             mDecInfo.mCnToPage.add(0);
-            chooseAndUpdate(1);
+            changeToStateInput(true);
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
                 keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
@@ -539,6 +538,9 @@ public class PinyinIME extends InputMethodService {
             mInputModeSwitcher.toggleNextState();
             mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
                     View.VISIBLE : View.GONE);
+            //不管当前是什么状态，都置为INPUT状态，并不显示候选view
+            changeToStateInput(true);
+            setCandidatesViewShown(false);
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_STAR) {
             if (!realAction) {
@@ -2816,6 +2818,11 @@ public class PinyinIME extends InputMethodService {
 //                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
                             ArrayList<char[]> candidateSplArr = getCandidateSplArr();
                             Log.e(TAG, "mCandidatesContainer=" + mCandidatesContainer);
+                            if (candidateSplArr == null || candidateSplArr.size() == 0) {
+                                //如果没有查询到则返回
+                                reset();
+                                return;
+                            }
                             char[] chars = candidateSplArr.get(mCandidatesContainer
                                     .getCurSplCursor());
                             if (chars == null) return;
