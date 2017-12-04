@@ -297,11 +297,11 @@ public class CandidatesContainer extends LinearLayout implements
     private void showSplList(ArrayList<char[]> candidateSplArr) {
         Log.e(TAG, "showSplList");
         mSplList.removeAllViews();
-        if (candidateSplArr == null || candidateSplArr.size() ==0) {
-            mSplList.setVisibility(View.GONE);
-            return;
-        }
-        mSplList.setVisibility(View.VISIBLE);
+//        if (candidateSplArr == null || candidateSplArr.size() ==0) {
+//            setSplListVisibility(View.GONE);
+//            return;
+//        }
+//        setSplListVisibility(View.VISIBLE);
         for (int i = 0; i < candidateSplArr.size(); i++) {
             TextView view = new TextView(getContext());
             view.setText(chars2Str(candidateSplArr.get(i)));
@@ -317,6 +317,7 @@ public class CandidatesContainer extends LinearLayout implements
      * @param visibility
      */
     public void setSplListVisibility(int visibility) {
+        Log.e(TAG, "setSplListVisibility=" + visibility);
         mSplList.setVisibility(visibility);
     }
 
@@ -370,7 +371,7 @@ public class CandidatesContainer extends LinearLayout implements
         int measuredHeight = getPaddingTop();
 		measuredHeight += env.getHeightForCandidates();
         //动态改变candidatesview的高度--bianjb
-        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14:0);
+        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(measuredHeight,

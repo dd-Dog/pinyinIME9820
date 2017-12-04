@@ -464,10 +464,32 @@ public class InputModeSwitcher {
     public static final int MODE_LOWERCASE = 1002;
     public static final int MODE_UPPERCASE = 1003;
     public static final int MODE_SYMBOL = 1004;
+    public static final int MODE_HKB = 1005;
     private int mCurrentInputMode = MODE_CHINESE;
     private int mLastInputMode = MODE_UNSET;
     private static final String TAG = "InputModeSwitcher";
 
+    /**
+     * 根据EditorInfo来设置当初始输入法模式
+     * @param editorInfo
+     * @return
+     */
+    public void requestInputType(EditorInfo editorInfo) {
+
+
+        switch (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS) {
+            case EditorInfo.TYPE_CLASS_NUMBER:
+            case EditorInfo.TYPE_CLASS_PHONE:
+                mInputMode = MODE_HKB;
+                break;
+            case EditorInfo.TYPE_CLASS_TEXT:
+                mInputMode = MODE_CHINESE;
+                break;
+            default:
+                break;
+        }
+
+    }
     /**
      * 获取当前的输入法模式--bianjb
      *
