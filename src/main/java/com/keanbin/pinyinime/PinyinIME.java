@@ -1766,7 +1766,7 @@ public class PinyinIME extends InputMethodService {
         //在这里判断当前如果是预报状态，不显示候选拼音组合--bianjb
         if (mImeState == ImeState.STATE_PREDICT) {
             mCandidatesContainer.setSplListVisibility(View.GONE);
-        } else {
+        } else if (mInputModeSwitcher.isChineseMode()){
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
         }
 //        setCandidatesViewShown(false);
