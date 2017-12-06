@@ -2596,22 +2596,37 @@ public class PinyinIME extends InputMethodService {
                 if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_UPPERCASE) {
                     base = -32;
                 }
-                switch (input) {
-                    case 'a':
-                    case 'd':
-                    case 'g':
-                    case 'j':
-                    case 'm':
-                    case 't':
-                    case 'p':
-                    case 'w':
-                        mCandidatesList.add((char) (input + base) + "");
-                        mCandidatesList.add((char) (input + 1 + base) + "");
-                        mCandidatesList.add((char) (input + 2 + base) + "");
-                        break;
-                }
+                mCandidatesList.add((char) (input + base) + "");
+                mCandidatesList.add((char) (input + 1 + base) + "");
+                mCandidatesList.add((char) (input + 2 + base) + "");
                 if (input == 'p' || input == 'w') {
                     mCandidatesList.add((char) (input + 3 + base) + "");
+                }
+                switch (input) {
+                    case 'a':
+                        mCandidatesList.add("2");
+                        break;
+                    case 'd':
+                        mCandidatesList.add("3");
+                        break;
+                    case 'g':
+                        mCandidatesList.add("4");
+                        break;
+                    case 'j':
+                        mCandidatesList.add("5");
+                        break;
+                    case 'm':
+                        mCandidatesList.add("6");
+                        break;
+                    case 't':
+                        mCandidatesList.add("7");
+                        break;
+                    case 'p':
+                        mCandidatesList.add("8");
+                        break;
+                    case 'w':
+                        mCandidatesList.add("9");
+                        break;
                 }
             }
             Log.e(TAG, "mCandidatesList=" + mCandidatesList);

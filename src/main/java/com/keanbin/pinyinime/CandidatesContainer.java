@@ -371,6 +371,8 @@ public class CandidatesContainer extends LinearLayout implements
         int measuredHeight = getPaddingTop();
 		measuredHeight += env.getHeightForCandidates();
         //动态改变candidatesview的高度--bianjb
+//        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
+        measuredHeight = 36;
         measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);
