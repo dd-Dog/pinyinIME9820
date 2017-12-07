@@ -343,6 +343,10 @@ public class PinyinIME extends InputMethodService {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_0:
                     keyChar = keyCode - KeyEvent.KEYCODE_0 + '0';
+                    if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_NUMBER) {
+                        commitResultText(" ");
+                        return true;
+                    }
                     break;
                 case KeyEvent.KEYCODE_1:
                     keyChar = keyCode - KeyEvent.KEYCODE_0 + '1';
@@ -886,7 +890,14 @@ public class PinyinIME extends InputMethodService {
                 || keyCode == KeyEvent.KEYCODE_DEL) {
             if (!realAction)
                 return true;
-
+            //判断输入拼音是否正确，如果不正确就不作处理
+            String s = mDecInfo.getInputKey() + mDecInfo.char2code((char) keyChar);
+            Log.e(TAG, "S=" + s);
+            ArrayList<char[]> splStrs = T92Pinyin.getSplStrs(s);
+            if (splStrs == null || splStrs.size() == 0) {
+                Log.e(TAG, "splStrs=" + splStrs);
+                return true;
+            }
             // 添加输入的拼音，然后进行词库查询，或者删除输入的拼音指定的字符或字符串，然后进行词库查询。
             return processSurfaceChange(keyChar, keyCode);
         } else if (keyChar == ',' || keyChar == '.') {
