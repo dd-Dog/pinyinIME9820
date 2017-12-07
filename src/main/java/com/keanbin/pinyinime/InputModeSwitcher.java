@@ -464,6 +464,7 @@ public class InputModeSwitcher {
     public static final int MODE_LOWERCASE = 1002;
     public static final int MODE_UPPERCASE = 1003;
     public static final int MODE_SYMBOL = 1004;
+    public static final int MODE_NUMBER = 1006;
     public static final int MODE_HKB = 1005;
     private int mCurrentInputMode = MODE_CHINESE;
     private int mLastInputMode = MODE_UNSET;
@@ -475,19 +476,19 @@ public class InputModeSwitcher {
      * @return
      */
     public void requestInputType(EditorInfo editorInfo) {
-
-
+        Log.e(TAG, "inputType=" + (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS));
         switch (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS) {
             case EditorInfo.TYPE_CLASS_NUMBER:
             case EditorInfo.TYPE_CLASS_PHONE:
-                mInputMode = MODE_HKB;
+                mCurrentInputMode = MODE_HKB;
                 break;
             case EditorInfo.TYPE_CLASS_TEXT:
-                mInputMode = MODE_CHINESE;
+                mCurrentInputMode = MODE_CHINESE;
                 break;
             default:
                 break;
         }
+        Log.e(TAG, "mCurrentInputMode=" + mCurrentInputMode);
 
     }
     /**
@@ -513,6 +514,9 @@ public class InputModeSwitcher {
                 mCurrentInputMode = MODE_UPPERCASE;
                 break;
             case MODE_UPPERCASE:
+                mCurrentInputMode = MODE_NUMBER;
+                break;
+            case MODE_NUMBER:
                 mCurrentInputMode = MODE_CHINESE;
                 break;
             case MODE_SYMBOL:

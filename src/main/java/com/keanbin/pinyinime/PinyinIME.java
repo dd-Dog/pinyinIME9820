@@ -259,18 +259,21 @@ public class PinyinIME extends InputMethodService {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyDown() repeatecount=" + event.getRepeatCount());
-        if (processKey(event, 0 != event.getRepeatCount()) || mInputModeSwitcher
-                .getCurrentInputMode() == InputModeSwitcher.MODE_HKB)
-            return true;
+        if (!(mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB)) {
+            if (processKey(event, 0 != event.getRepeatCount()))
+                return true;
+
+        }
         return super.onKeyDown(keyCode, event);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyUp()");
-        if (processKey(event, true) || mInputModeSwitcher
-                .getCurrentInputMode() == InputModeSwitcher.MODE_HKB)
-            return true;
+        if (!(mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB)) {
+            if (processKey(event, true))
+                return true;
+        }
         return super.onKeyUp(keyCode, event);
     }
 
@@ -342,7 +345,7 @@ public class PinyinIME extends InputMethodService {
                     keyChar = keyCode - KeyEvent.KEYCODE_0 + '0';
                     break;
                 case KeyEvent.KEYCODE_1:
-                    keyChar = keyCode - KeyEvent.KEYCODE_0 + '0';
+                    keyChar = keyCode - KeyEvent.KEYCODE_0 + '1';
                     break;
                 case KeyEvent.KEYCODE_2:
                     keyChar = 'a';
@@ -381,7 +384,9 @@ public class PinyinIME extends InputMethodService {
         }
 
         Log.e(TAG, "mCurrnetInputMode=" + mInputModeSwitcher.getCurrentInputMode());
-        if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
+        if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_NUMBER) {
+            return processStateNumber(keyChar, keyCode, event, realAction);
+        } else if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
             if (mImeState == ImeState.STATE_IDLE) {
                 return processStateSymbolIdle(keyChar, keyCode, event, realAction);
             } else if (mImeState == ImeState.STATE_INPUT) {
@@ -413,6 +418,27 @@ public class PinyinIME extends InputMethodService {
                 // 发送文本给EditText
                 commitResultText(String.valueOf((char) keyChar));
             }
+        }
+        return false;
+    }
+
+    /**
+     * 输入数字的处理
+     *
+     * @param keyChar
+     * @param keyCode
+     * @param event
+     * @param realAction
+     * @return
+     */
+    private boolean processStateNumber(int keyChar, int keyCode, KeyEvent event, boolean
+            realAction) {
+        Log.d(TAG, "processStateNumber");
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            if (!realAction)
+                return true;
+            commitResultText(mDecInfo.char2code((char) keyChar) + "");
+            return true;
         }
         return false;
     }
@@ -737,12 +763,20 @@ public class PinyinIME extends InputMethodService {
 
     private boolean processStateIdle(int keyChar, int keyCode, KeyEvent event,
                                      boolean realAction) {
-        Log.d(TAG, "processStateIdle()");
+        Log.d(TAG, "processStateIdle()::keyChar=" + keyChar);
         // In this status, when user presses keys in [a..z], the status will
         // change to input state.
         if (keyChar >= 'a' && keyChar <= 'z' && !event.isAltPressed()) {
             if (!realAction)
                 return true;
+            //判断输入拼音是否正确，如果不正确就不作处理
+            String s = mDecInfo.getInputKey() + mDecInfo.char2code((char) keyChar);
+            Log.e(TAG, "S=" + s);
+            ArrayList<char[]> splStrs = T92Pinyin.getSplStrs(s);
+            if (splStrs == null || splStrs.size() == 0) {
+                Log.e(TAG, "splStrs=" + splStrs);
+                return true;
+            }
             mDecInfo.addSplChar((char) keyChar, true);
             // 对输入的拼音进行查询
             chooseAndUpdate(-1);
@@ -1427,7 +1461,7 @@ public class PinyinIME extends InputMethodService {
      * @param resultText
      */
     private void commitResultText(String resultText) {
-        Log.d(TAG, "commitResultText()");
+        Log.d(TAG, "commitResultText()::resultText=" + resultText);
         InputConnection ic = getCurrentInputConnection();
         if (null != ic)
             ic.commitText(resultText, 1);
@@ -1766,7 +1800,7 @@ public class PinyinIME extends InputMethodService {
         //在这里判断当前如果是预报状态，不显示候选拼音组合--bianjb
         if (mImeState == ImeState.STATE_PREDICT) {
             mCandidatesContainer.setSplListVisibility(View.GONE);
-        } else if (mInputModeSwitcher.isChineseMode()){
+        } else if (mInputModeSwitcher.isChineseMode()) {
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
         }
 //        setCandidatesViewShown(false);
@@ -1866,6 +1900,7 @@ public class PinyinIME extends InputMethodService {
 
     @Override
     public void onStartInput(EditorInfo editorInfo, boolean restarting) {
+        Log.e(TAG, "onStartInput");
         if (mEnvironment.needDebug()) {
             Log.d(TAG,
                     "onStartInput " + " ccontentType: "
