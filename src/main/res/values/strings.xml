@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="app_name">注释后的谷歌拼音输入法</string>
-    <string name="ime_name">注释后的谷歌拼音输入法</string>
+    <string name="app_name">FlyscaleIME</string>
+    <string name="ime_name">FlyscaleIME</string>
     <string name="ime_settings_activity_name">谷歌拼音输入法设置</string>
     <!-- version = apk(java) + ime engine + sys dict + [hotlist (TBD)] -->
     <string name="version">1.0.0</string>

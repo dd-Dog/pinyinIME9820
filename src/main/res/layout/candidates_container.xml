@@ -3,7 +3,7 @@
                                            android:id="@+id/candidates_container"
                                            android:layout_width="0dip"
                                            android:layout_height="0dip"
-                                           android:background="@drawable/cands_container_bg"
+                                           android:background="@color/white"
                                            android:orientation="vertical">
 
     <ImageButton

@@ -269,7 +269,7 @@ public class PinyinIME extends InputMethodService {
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyUp()");
+        Log.d(TAG, "onKeyUp(), inputconnection=" + getCurrentInputConnection());
         if (!(mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB)) {
             if (processKey(event, true))
                 return true;
@@ -288,10 +288,8 @@ public class PinyinIME extends InputMethodService {
         if (ic == null)
             return;
         ic.beginBatchEdit();
-
         ic.commitText(text, 0);
         ic.endBatchEdit();
-
     }
 
     /**
@@ -349,7 +347,7 @@ public class PinyinIME extends InputMethodService {
                     }
                     break;
                 case KeyEvent.KEYCODE_1:
-                    keyChar = keyCode - KeyEvent.KEYCODE_0 + '1';
+                    keyChar = '1';
                     break;
                 case KeyEvent.KEYCODE_2:
                     keyChar = 'a';
@@ -438,10 +436,32 @@ public class PinyinIME extends InputMethodService {
     private boolean processStateNumber(int keyChar, int keyCode, KeyEvent event, boolean
             realAction) {
         Log.d(TAG, "processStateNumber");
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (SIMULATE_KEY_DELETE) {
+                // 模拟删除键发送给 EditText
+                simulateKeyEventDownUp(keyCode);
+            } else {
+                // 发送删除一个字符的操作给 EditText
+                InputConnection ic = getCurrentInputConnection();
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                if (TextUtils.isEmpty(textBeforeCursor)) {
+                    return false;
+                }
+                if (realAction) {
+                    ic.deleteSurroundingText(1, 0);
+                }
+            }
+            return true;
+        }
+
         if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
             if (!realAction)
                 return true;
-            commitResultText(mDecInfo.char2code((char) keyChar) + "");
+            if (keyChar == '1') {
+                commitResultText("1");
+            } else {
+                commitResultText(mDecInfo.char2code((char) keyChar) + "");
+            }
             return true;
         }
         return false;
@@ -468,7 +488,7 @@ public class PinyinIME extends InputMethodService {
                 return false;
             }
             // 发送删除一个字符的操作给 EditText
-            getCurrentInputConnection().deleteSurroundingText(1, 0);
+            ic.deleteSurroundingText(1, 0);
             return true;
         }
 
@@ -526,11 +546,15 @@ public class PinyinIME extends InputMethodService {
             if (keyCode == KeyEvent.KEYCODE_BACK) {
                 // 发送删除一个字符的操作给 EditText
                 InputConnection ic = getCurrentInputConnection();
+                Log.d(TAG, "getCurrentInputConnection=" + ic);
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
                 if (TextUtils.isEmpty(textBeforeCursor)) {
                     return false;
                 }
-                getCurrentInputConnection().deleteSurroundingText(1, 0);
+                Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
+                boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
+                Log.d(TAG, "删除操作b=" + b);
                 return true;
             }
         } else {
@@ -560,7 +584,8 @@ public class PinyinIME extends InputMethodService {
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             resetToIdleState(true);
-            setCandidatesViewShown(false);
+//            setCandidatesViewShown(false);
+            requestHideSelf(0);
             return true;
         }
 
@@ -580,7 +605,6 @@ public class PinyinIME extends InputMethodService {
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 // 高亮位置向上一个候选词移动或者移动到上一页的最后一个候选词的位置。
                 mCandidatesContainer.activeCurseBackward();
-
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 mCandidatesContainer.activeCurseForward();
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
@@ -588,7 +612,6 @@ public class PinyinIME extends InputMethodService {
             }
             return true;
         }
-
         return false;
     }
 
@@ -612,6 +635,17 @@ public class PinyinIME extends InputMethodService {
                 if (mSkbContainer.handleBack(realAction))
                     return true;
             }
+//            if (!TextUtils.isEmpty(getCurrentInputConnection().getTextBeforeCursor(1, 0))) {
+//                getCurrentInputConnection().deleteSurroundingText(1,0);
+//                Log.d(TAG, "删除一个字符");
+//                return true;
+//            }
+            return false;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_POWER) {
+            mSkbContainer.handleBack(realAction);
+            return true;
         }
 
         //bianjb--添加中英文切换，'#'切换
@@ -627,7 +661,7 @@ public class PinyinIME extends InputMethodService {
             mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
                     View.VISIBLE : View.GONE);
             //不管当前是什么状态，都置为INPUT状态，并不显示候选view
-            changeToStateInput(true);
+//            changeToStateInput(true);
             setCandidatesViewShown(false);
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_STAR) {
@@ -671,6 +705,12 @@ public class PinyinIME extends InputMethodService {
 
                 // 选择当前高亮的候选词
                 chooseCandidate(-1);
+                //如果是输入符号模式，输入一个后就退回到之前的输入模式
+                if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
+                    mDecInfo.reset();
+                    mInputModeSwitcher.toggleNextState();
+                    setCandidatesViewShown(false);
+                }
                 return true;
             }
 
@@ -1474,6 +1514,7 @@ public class PinyinIME extends InputMethodService {
     private void commitResultText(String resultText) {
         Log.d(TAG, "commitResultText()::resultText=" + resultText);
         InputConnection ic = getCurrentInputConnection();
+        Log.d(TAG, "getCurrentInputConnection=" + ic);
         if (null != ic)
             ic.commitText(resultText, 1);
         if (null != mComposingView) {
@@ -1669,9 +1710,9 @@ public class PinyinIME extends InputMethodService {
 
     @Override
     public View onCreateCandidatesView() {
-        Log.d(TAG, "onCreateCandidatesView.");
+        Log.d(TAG, "onCreateCandidatesView---");
         if (mEnvironment.needDebug()) {
-            Log.d(TAG, "onCreateCandidatesView.");
+//            Log.d(TAG, "onCreateCandidatesView.");
         }
 
         LayoutInflater inflater = getLayoutInflater();
@@ -2964,6 +3005,10 @@ public class PinyinIME extends InputMethodService {
                                 //如果没有查询到则返回
                                 reset();
                                 return;
+                            }
+                            //有的EditText无法调用onCreateCandidatesView()所以这里要判断一下
+                            if (mCandidatesContainer == null) {
+                                onCreateCandidatesView();
                             }
                             char[] chars = candidateSplArr.get(mCandidatesContainer
                                     .getCurSplCursor());

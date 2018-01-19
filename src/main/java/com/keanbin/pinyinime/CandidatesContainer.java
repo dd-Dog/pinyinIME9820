@@ -307,7 +307,7 @@ public class CandidatesContainer extends LinearLayout implements
             view.setText(chars2Str(candidateSplArr.get(i)));
             view.setTextSize(16);
             view.setTextColor(Color.BLACK);
-            view.setPadding(1, 0, 1, 0);
+            view.setPadding(1, 0, 4, 0);
             mSplList.addView(view);
         }
     }
@@ -372,7 +372,7 @@ public class CandidatesContainer extends LinearLayout implements
 		measuredHeight += env.getHeightForCandidates();
         //动态改变candidatesview的高度--bianjb
 //        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
-        measuredHeight = 36;
+        measuredHeight = 22;
         measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);

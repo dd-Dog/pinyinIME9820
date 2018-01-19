@@ -51,7 +51,7 @@ public class CandidateView extends View {
     /**
      * The minimum width to show a item. 一个item最小的宽度
      */
-    private static final float MIN_ITEM_WIDTH = 16;
+    private static final float MIN_ITEM_WIDTH = 24;
 
     /**
      * Suspension points used to display long items. 省略号
@@ -536,6 +536,7 @@ public class CandidateView extends View {
             onlyExtraMargin = true;
             fromPage = pageNo;
         }
+
 
         // If the previous pages have no information, calculate them first.
         for (int p = fromPage; p <= pageNo; p++) {

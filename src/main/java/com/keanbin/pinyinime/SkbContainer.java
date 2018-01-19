@@ -400,7 +400,8 @@ public class SkbContainer extends RelativeLayout implements OnTouchListener {
 
 			if (null == mPopupSkbView) {
 				mPopupSkbView = new SoftKeyboardView(mContext, null);
-				mPopupSkbView.onMeasure(LayoutParams.WRAP_CONTENT,
+				//bianjb
+				mPopupSkbView.measure(LayoutParams.WRAP_CONTENT,
 						LayoutParams.WRAP_CONTENT);
 			}
 			mPopupSkbView.setOnTouchListener(this);
