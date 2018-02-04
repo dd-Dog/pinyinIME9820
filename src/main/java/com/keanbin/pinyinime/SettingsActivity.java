@@ -68,6 +68,7 @@ public class SettingsActivity extends PreferenceActivity implements
 		updatePreference(prefSet, getString(R.string.setting_advanced_key));
 
 		updateWidgets();
+
 	}
 
 	@Override

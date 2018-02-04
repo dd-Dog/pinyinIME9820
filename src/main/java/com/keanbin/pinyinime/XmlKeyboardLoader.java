@@ -390,7 +390,7 @@ public class XmlKeyboardLoader {
 						float yMargin = getFloat(xrp, XMLATTR_KEY_YMARGIN, 0);
 						mSkbTemplate.setMargins(xMargin, yMargin);
 
-						// Get default global colors.
+						// Get default com.flyscale.callsettings.global colors.
 						globalColor = getColor(xrp, XMLATTR_COLOR, 0);
 						globalColorHl = getColor(xrp, XMLATTR_COLOR_HIGHLIGHT,
 								0xffffffff);

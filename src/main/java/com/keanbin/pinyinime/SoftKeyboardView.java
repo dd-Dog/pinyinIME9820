@@ -34,7 +34,7 @@ import com.keanbin.pinyinime.SoftKeyboard.KeyRow;
  * Class used to show a soft keyboard.
  * 
  * A soft keyboard view should not handle touch event itself, because we do bias
- * correction, need a global strategy to map an event into a proper view to
+ * correction, need a com.flyscale.callsettings.global strategy to map an event into a proper view to
  * achieve better user experience. 软件盘视图
  */
 public class SoftKeyboardView extends View {

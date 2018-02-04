@@ -491,6 +491,10 @@ public class InputModeSwitcher {
         Log.e(TAG, "mCurrentInputMode=" + mCurrentInputMode);
 
     }
+
+    public void setInputModeHKB() {
+        mCurrentInputMode = MODE_HKB;
+    }
     /**
      * 获取当前的输入法模式--bianjb
      *
@@ -551,7 +555,7 @@ public class InputModeSwitcher {
      * @param mode
      */
     public void setCurrentInputMode(int mode) {
-        if (mode > 1004 || mode < 1000) {
+        if (mode > 1005 || mode < 1000) {
             return;
         }
         mLastInputMode = mCurrentInputMode;
