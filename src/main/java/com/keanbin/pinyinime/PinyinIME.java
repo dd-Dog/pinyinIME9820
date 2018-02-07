@@ -199,12 +199,6 @@ public class PinyinIME extends InputMethodService {
             Log.d(TAG, "onCreate.");
         }
 
-//        keyCodeReceiver = new KeyCodeReceiver();
-//        IntentFilter intentFilter = new IntentFilter();
-//        intentFilter.addAction("com.flyscale.send.action.KEYCODE");
-//        registerReceiver(keyCodeReceiver, intentFilter);
-
-
         super.onCreate();
         pinyinIME = this;
 
@@ -227,24 +221,6 @@ public class PinyinIME extends InputMethodService {
                 this);
     }
 
-//    class KeyCodeReceiver extends BroadcastReceiver {
-//
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            Log.d(TAG, "收到按鍵廣播");
-//            if (TextUtils.equals("com.flyscale.send.action.KEYCODE",
-//                    intent.getAction())) {
-//                int keycode = intent.getIntExtra("keycode", -1);
-//                String action = intent.getStringExtra("action");
-//                if (keycode == 26 && TextUtils.equals(action, "up")) {
-//                    setCandidatesViewShown(false);
-//                    mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
-//                    Log.d(TAG, "收到了POWER按鍵廣播");
-//                }
-//            }
-//        }
-//    }
-
 
     @Override
     public void onDestroy() {
@@ -252,11 +228,9 @@ public class PinyinIME extends InputMethodService {
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "onDestroy.");
         }
-
 //        unregisterReceiver(keyCodeReceiver);
         // 解绑定词库解码远程服务PinyinDecoderService
         unbindService(mPinyinDecoderServiceConnection);
-
         // 释放设置类的引用
         Settings.releaseInstance();
 
@@ -267,6 +241,8 @@ public class PinyinIME extends InputMethodService {
     @Override
     public void onUnbindInput() {
         super.onUnbindInput();
+        mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+        setCandidatesViewShown(false);
         Log.d(TAG, "onUnbindInput");
     }
 
@@ -1691,7 +1667,7 @@ public class PinyinIME extends InputMethodService {
 //            resetToIdleState(false);
             return;
         }
-
+        Log.d(TAG, "chooseAndUpdate::mImeState=" + mImeState);
         if (ImeState.STATE_PREDICT != mImeState) {
             // Get result candidate list, if choice_id < 0, do a new decoding.
             // If choice_id >=0, select the candidate, and get the new candidate
@@ -1992,8 +1968,10 @@ public class PinyinIME extends InputMethodService {
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "Candidates window is to be reset");
         }
-        if (null == mCandidatesContainer)
+        if (null == mCandidatesContainer){
+            Log.d(TAG, "resetCandidateWindow::mCandidatesContainer==NULL");
             return;
+        }
         try {
             mFloatingWindowTimer.cancelShowing();
             mFloatingWindow.dismiss();
@@ -2008,6 +1986,7 @@ public class PinyinIME extends InputMethodService {
         mDecInfo.resetCandidates();
 
         if (null != mCandidatesContainer && mCandidatesContainer.isShown()) {
+            Log.d(TAG, "resetCandidateWindow:: 隐藏candiatewindow");
             showCandidateWindow(false);
         }
     }
@@ -3090,6 +3069,9 @@ public class PinyinIME extends InputMethodService {
 //                            char[] chars = T92Pinyin.findCharsByKeycodes(inputKey);
                             ArrayList<char[]> candidateSplArr = getCandidateSplArr();
                             Log.e(TAG, "mCandidatesContainer=" + mCandidatesContainer);
+                            if (mCandidatesContainer == null) {
+                                onCreateCandidatesView();
+                            }
                             if (candidateSplArr == null || candidateSplArr.size() == 0) {
                                 //如果没有查询到则返回
                                 reset();
@@ -3270,6 +3252,7 @@ public class PinyinIME extends InputMethodService {
             mFullSent = tmp;
             mFixedLen = tmp.length();
             mComposingStr = mFullSent;
+            Log.d(TAG, "choosePredictChoice::mComposingStr=" + mComposingStr);
             mActiveCmpsLen = mFixedLen;
 
             mFinishSelection = true;
