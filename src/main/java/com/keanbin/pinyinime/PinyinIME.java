@@ -242,6 +242,7 @@ public class PinyinIME extends InputMethodService {
     public void onUnbindInput() {
         super.onUnbindInput();
         mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+        Log.d(TAG, "setCandidatesViewShown(false)");
         setCandidatesViewShown(false);
         Log.d(TAG, "onUnbindInput");
     }
@@ -284,7 +285,8 @@ public class PinyinIME extends InputMethodService {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyDown() repeatecount=" + event.getRepeatCount());
-        if (processKey(event, 0 != event.getRepeatCount()))
+//        if (processKey(event, 0 != event.getRepeatCount()))
+        if (processKey(event, false))
             return true;
         return super.onKeyDown(keyCode, event);
     }
@@ -292,7 +294,6 @@ public class PinyinIME extends InputMethodService {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
-//        if (!(mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB)) {
         if (processKey(event, true))
             return true;
         return super.onKeyUp(keyCode, event);
@@ -360,6 +361,9 @@ public class PinyinIME extends InputMethodService {
          */
         // 功能键处理
         if (processFunctionKeys(keyCode, realAction)) {
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB){
+                return false;
+            }
             return true;
         }
 
@@ -669,7 +673,7 @@ public class PinyinIME extends InputMethodService {
     private boolean processFunctionKeys(int keyCode, boolean realAction) {
         Log.d(TAG, "processFunctionKeys(), keyCode=" + keyCode);
 
-        if (!realAction) return false;
+//        if (!realAction) return false;
         // Back key is used to dismiss all popup UI in a soft keyboard.
         // 后退键的处理。副软键盘弹出框显示的时候，如果realAction为true，那么就调用dismissPopupSkb（）隐藏副软键盘弹出框，显示主软键盘视图。
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -703,6 +707,10 @@ public class PinyinIME extends InputMethodService {
             if (!realAction) {
                 return true;
             }
+            //如果是输入类型是PHONE，也不进行切换
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB){
+                return true;
+            }
             mDecInfo.inputKeyChars.clear();//切换输入状态时要清空输入记录
             mDecInfo.mSurface.delete(0, mDecInfo.mSurface.length());
             mDecInfo.mSurfaceDecodedLen = 0;
@@ -730,6 +738,9 @@ public class PinyinIME extends InputMethodService {
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_STAR) {
             if (!realAction) {
+                return true;
+            }
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB){
                 return true;
             }
             mDecInfo.mSurface.delete(0, mDecInfo.mSurface.length());
@@ -763,7 +774,7 @@ public class PinyinIME extends InputMethodService {
 
         if (null != mCandidatesContainer && mCandidatesContainer.isShown()
                 && !mDecInfo.isCandidatesListEmpty()) {// 候选词视图显示的时候
-            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_MENU) {
                 if (!realAction)
                     return true;
 
@@ -1081,7 +1092,8 @@ public class PinyinIME extends InputMethodService {
             }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER
-                || keyCode == KeyEvent.KEYCODE_SPACE) {
+                || keyCode == KeyEvent.KEYCODE_SPACE
+                || keyCode == KeyEvent.KEYCODE_MENU) {
             if (!realAction)
                 return true;
             // 选择高亮的候选词
@@ -1203,7 +1215,8 @@ public class PinyinIME extends InputMethodService {
             sendKeyChar('\n');
             resetToIdleState(false);
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER
-                || keyCode == KeyEvent.KEYCODE_SPACE) {
+                || keyCode == KeyEvent.KEYCODE_SPACE
+                || keyCode == KeyEvent.KEYCODE_MENU) {
             // 选择候选词
             chooseCandidate(-1);
         }
@@ -1283,7 +1296,8 @@ public class PinyinIME extends InputMethodService {
         } else if ((keyCode == KeyEvent.KEYCODE_ENTER && mInputModeSwitcher
                 .isEnterNoramlState())
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER
-                || keyCode == KeyEvent.KEYCODE_SPACE) {
+                || keyCode == KeyEvent.KEYCODE_SPACE
+                || keyCode == KeyEvent.KEYCODE_MENU) {
             if (ComposingView.ComposingStatus.SHOW_STRING_LOWERCASE == cmpsvStatus) {
                 // 获取原始的输入拼音的字符
                 String str = mDecInfo.getOrigianlSplStr().toString();
@@ -1396,7 +1410,8 @@ public class PinyinIME extends InputMethodService {
         } else if ((keyCode == KeyEvent.KEYCODE_ENTER && mInputModeSwitcher
                 .isEnterNoramlState())
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER
-                || keyCode == KeyEvent.KEYCODE_SPACE) {
+                || keyCode == KeyEvent.KEYCODE_SPACE
+                || keyCode == KeyEvent.KEYCODE_MENU) {
             if (ComposingView.ComposingStatus.SHOW_STRING_LOWERCASE == cmpsvStatus) {
                 // 获取原始的输入拼音的字符
                 String str = mDecInfo.getOrigianlSplStr().toString();
@@ -1968,7 +1983,7 @@ public class PinyinIME extends InputMethodService {
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "Candidates window is to be reset");
         }
-        if (null == mCandidatesContainer){
+        if (null == mCandidatesContainer) {
             Log.d(TAG, "resetCandidateWindow::mCandidatesContainer==NULL");
             return;
         }
@@ -2736,9 +2751,9 @@ public class PinyinIME extends InputMethodService {
          * 设置英文状态下候选词列表
          * bianjb
          */
-        private char[] SYMBOLS = {'`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+',
-                '`', '\'', '"', ':', ';', ',', '.', '，', '。', '{', '}', '[', ']', '【', '】',
-                '、', '|', '<', '>', '《', '》', '/', '\\', '?', '？'};
+        private char[] SYMBOLS = {'?', '.', '，', ',', ':', '`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+',
+                '`', '\'', '"', ';', ',', '。', '{', '}', '[', ']', '【', '】',
+                '、', '|', '<', '>', '《', '》', '/', '\\', '？'};
 
         public void setmCandidatesList(int input) {
             mCandidatesList.clear();
