@@ -681,16 +681,7 @@ public class PinyinIME extends InputMethodService {
                 if (mSkbContainer.handleBack(realAction))
                     return true;
             }
-            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
-                if (!TextUtils.isEmpty(getCurrentInputConnection().getTextBeforeCursor(1, 0))) {
-                    getCurrentInputConnection().deleteSurroundingText(1, 0);
-                    Log.d(TAG, "删除一个字符");
-                    return true;
-                } else {
-                    Log.d(TAG, "按back，字符串为空，转为数字按键");
-                    mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
-                }
-            }
+
             return false;
         }
 
