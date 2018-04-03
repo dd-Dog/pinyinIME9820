@@ -17,10 +17,13 @@
 package com.keanbin.pinyinime;
 
 import android.content.res.Resources;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 
 import com.keanbin.pinyinime.SoftKeyboard.KeyRow;
+
+import java.util.Locale;
 
 /**
  * 输入法模式转换器。设置输入法的软键盘。
@@ -398,7 +401,7 @@ public class InputModeSwitcher {
 
         /**
          * The id of enabled row in the soft keyboard. Refer to
-         * {@link com.android.inputmethod.pinyin.SoftKeyboard.KeyRow} for
+         * {com.android.inputmethod.pinyin.SoftKeyboard.KeyRow} for
          * details. 软键盘中要显示的行的ID。只有ID为 mRowIdToEnable 和 ALWAYS_SHOW_ROW_ID
          * 的行才会被显示出来。
          */
@@ -466,7 +469,7 @@ public class InputModeSwitcher {
     public static final int MODE_SYMBOL = 1004;
     public static final int MODE_NUMBER = 1006;
     public static final int MODE_HKB = 1005;
-    private int mCurrentInputMode = MODE_CHINESE;
+    private int mCurrentInputMode = MODE_HKB;
     private int mLastInputMode = MODE_UNSET;
     private static final String TAG = "InputModeSwitcher";
 
@@ -483,7 +486,13 @@ public class InputModeSwitcher {
                 mCurrentInputMode = MODE_HKB;
                 break;
             case EditorInfo.TYPE_CLASS_TEXT:
-                mCurrentInputMode = MODE_CHINESE;
+                String locale = Locale.getDefault().getLanguage();
+                Log.d(TAG, "locale=" + locale);
+                if (TextUtils.equals("zh", locale)) {
+                    mCurrentInputMode = MODE_CHINESE;
+                }else {
+                    mCurrentInputMode = MODE_LOWERCASE;
+                }
                 break;
             default:
                 break;
@@ -960,7 +969,6 @@ public class InputModeSwitcher {
     }
 
     /**
-     * @param 长按处理
      * @return
      */
     public boolean tryHandleLongPressSwitch(int keyCode) {

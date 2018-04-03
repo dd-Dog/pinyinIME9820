@@ -425,6 +425,7 @@ public class PinyinIME extends InputMethodService {
         Log.e(TAG, "mCurrnetInputMode=" + mInputModeSwitcher.getCurrentInputMode());
         if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
             return false;
+//            return processStateNumber(keyChar, keyCode, event, realAction);
         } else if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_NUMBER) {
             return processStateNumber(keyChar, keyCode, event, realAction);
         } else if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
