@@ -530,7 +530,8 @@ public class InputModeSwitcher {
                 mCurrentInputMode = MODE_NUMBER;
                 break;
             case MODE_NUMBER:
-                mCurrentInputMode = MODE_CHINESE;
+//                mCurrentInputMode = MODE_CHINESE;
+                mCurrentInputMode = MODE_LOWERCASE;
                 break;
             case MODE_SYMBOL:
                 mCurrentInputMode = mLastInputMode;
