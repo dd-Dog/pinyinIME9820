@@ -374,6 +374,10 @@ public class InputModeSwitcher {
      */
     private int mToggleRowEmailAddress;
 
+    public boolean isPortuguese() {
+        return mCurrentInputMode == MODE_PT_LOWER || mCurrentInputMode == MODE_PT_UPPER;
+    }
+
     /**
      * 控制当前输入法模式软键盘布局要显示的按键切换状态和要显示的行ID的管理类。比如当前软键盘布局中
      * ，有一个按键有默认状态、和两个切换状态，ToggleStates中的mKeyStates[]保存的就是当前要显示的切换状态
@@ -469,12 +473,15 @@ public class InputModeSwitcher {
     public static final int MODE_SYMBOL = 1004;
     public static final int MODE_NUMBER = 1006;
     public static final int MODE_HKB = 1005;
+    public static final int MODE_PT_LOWER = 1007;
+    public static final int MODE_PT_UPPER = 1008;
     private int mCurrentInputMode = MODE_HKB;
     private int mLastInputMode = MODE_UNSET;
     private static final String TAG = "InputModeSwitcher";
 
     /**
      * 根据EditorInfo来设置当初始输入法模式
+     *
      * @param editorInfo
      * @return
      */
@@ -490,7 +497,7 @@ public class InputModeSwitcher {
                 Log.d(TAG, "locale=" + locale);
                 if (TextUtils.equals("zh", locale)) {
                     mCurrentInputMode = MODE_CHINESE;
-                }else {
+                } else {
                     mCurrentInputMode = MODE_LOWERCASE;
                 }
                 break;
@@ -504,6 +511,7 @@ public class InputModeSwitcher {
     public void setInputModeHKB() {
         mCurrentInputMode = MODE_HKB;
     }
+
     /**
      * 获取当前的输入法模式--bianjb
      *
@@ -527,11 +535,17 @@ public class InputModeSwitcher {
                 mCurrentInputMode = MODE_UPPERCASE;
                 break;
             case MODE_UPPERCASE:
+                mCurrentInputMode = MODE_PT_LOWER;
+                break;
+            case MODE_PT_LOWER:
+                mCurrentInputMode = MODE_PT_UPPER;
+                break;
+            case MODE_PT_UPPER:
                 mCurrentInputMode = MODE_NUMBER;
                 break;
             case MODE_NUMBER:
-//                mCurrentInputMode = MODE_CHINESE;
-                mCurrentInputMode = MODE_LOWERCASE;
+                mCurrentInputMode = MODE_CHINESE;
+//                mCurrentInputMode = MODE_LOWERCASE;
                 break;
             case MODE_SYMBOL:
                 mCurrentInputMode = mLastInputMode;
