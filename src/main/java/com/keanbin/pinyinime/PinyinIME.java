@@ -283,10 +283,25 @@ public class PinyinIME extends InputMethodService {
         resetToIdleState(false);
     }
 
+    private boolean longBack = false;
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyDown() repeatecount=" + event.getRepeatCount());
-//        if (processKey(event, 0 != event.getRepeatCount()))
+        if (event.getRepeatCount() >= 30 && keyCode == KeyEvent.KEYCODE_BACK) {
+            InputConnection inputConnection = getCurrentInputConnection();
+            CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
+            CharSequence textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
+            while (!TextUtils.isEmpty(textBeforeCursor)) {
+                inputConnection.deleteSurroundingText(1, 0);
+                textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
+            }
+            while (!TextUtils.isEmpty(textAfterCursor)) {
+                inputConnection.deleteSurroundingText(0, 1);
+                textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
+            }
+            longBack = true;
+            return true;
+        }
         if (processKey(event, false))
             return true;
         return super.onKeyDown(keyCode, event);
@@ -295,6 +310,10 @@ public class PinyinIME extends InputMethodService {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
+        if (keyCode == KeyEvent.KEYCODE_BACK && longBack){
+            longBack = false;
+            return true;
+        }
         if (processKey(event, true))
             return true;
         return super.onKeyUp(keyCode, event);
@@ -302,11 +321,21 @@ public class PinyinIME extends InputMethodService {
 
     @Override
     public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_BACK:
-//                getCurrentInputConnection().deleteSurroundingText()
-                break;
-        }
+//        switch (keyCode) {
+//            case KeyEvent.KEYCODE_BACK:
+//                InputConnection inputConnection = getCurrentInputConnection();
+//                CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
+//                CharSequence textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
+//                while (!TextUtils.isEmpty(textBeforeCursor)) {
+//                    inputConnection.deleteSurroundingText(1, 0);
+//                    textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
+//                }
+//                while (!TextUtils.isEmpty(textAfterCursor)) {
+//                    inputConnection.deleteSurroundingText(0, 1);
+//                    textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
+//                }
+//                return true;
+//        }
         return super.onKeyLongPress(keyCode, event);
     }
 
@@ -481,7 +510,7 @@ public class PinyinIME extends InputMethodService {
      * @return
      */
     private boolean processStatePortugueseIdle(int keyChar, int keyCode,
-                                            KeyEvent event, boolean realAction) {
+                                               KeyEvent event, boolean realAction) {
         Log.d(TAG, "processStateEnglishIdle");
         if (realAction) {
             if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
