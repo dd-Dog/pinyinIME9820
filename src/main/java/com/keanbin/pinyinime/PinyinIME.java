@@ -1424,7 +1424,7 @@ public class PinyinIME extends InputMethodService {
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
             //更新composing
-            updateComposingText(true);
+            updateComposingText(false);
 //            mFloatingWindowTimer.postShowFloatingWindow();
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 mCandidatesContainer.backwardSplCursor();
@@ -1849,6 +1849,8 @@ public class PinyinIME extends InputMethodService {
                 commitResultText(resultStr);
                 // 设置输入法状态为预报
                 mImeState = ImeState.STATE_PREDICT;
+                //重置splcursor
+                mCandidatesContainer.resetSplCursor();
                 if (null != mSkbContainer && mSkbContainer.isShown()) {
                     mSkbContainer.toggleCandidateMode(false);
                 }
@@ -2098,7 +2100,7 @@ public class PinyinIME extends InputMethodService {
 
         //不再显示composingview--bianjb
         showComposingView = false;
-        updateComposingText(showComposingView);
+        updateComposingText(false);//不显示选择的拼音组合
         if (!(mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB))
             mCandidatesContainer.showCandidates(mDecInfo,
                     ImeState.STATE_COMPOSING != mImeState);
