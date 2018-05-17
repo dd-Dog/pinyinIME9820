@@ -19,6 +19,7 @@ package com.keanbin.pinyinime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 import android.app.Activity;
@@ -284,45 +285,22 @@ public class PinyinIME extends InputMethodService {
     }
 
     private boolean longBack = false;
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyDown() repeatecount=" + event.getRepeatCount());
-        if (event.getRepeatCount() >= 30 && keyCode == KeyEvent.KEYCODE_BACK) {
-            InputConnection inputConnection = getCurrentInputConnection();
-            CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
-            CharSequence textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
-            while (!TextUtils.isEmpty(textBeforeCursor)) {
-                inputConnection.deleteSurroundingText(1, 0);
-                textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
-            }
-            while (!TextUtils.isEmpty(textAfterCursor)) {
-                inputConnection.deleteSurroundingText(0, 1);
-                textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
-            }
-            longBack = true;
-            return true;
-        }
-        if (processKey(event, false))
-            return true;
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
-        if (keyCode == KeyEvent.KEYCODE_BACK && longBack){
-            longBack = false;
-            return true;
-        }
-        if (processKey(event, true))
-            return true;
-        return super.onKeyUp(keyCode, event);
-    }
-
-    @Override
-    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-//        switch (keyCode) {
-//            case KeyEvent.KEYCODE_BACK:
+//        if (event.getRepeatCount() > 15 && event.getRepeatCount() % 5 == 0) {
+//            if (keyCode == KeyEvent.KEYCODE_BACK) {
+//                InputConnection inputConnection = getCurrentInputConnection();
+//                CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
+//                if (!TextUtils.isEmpty(textBeforeCursor)) {
+//                    inputConnection.deleteSurroundingText(1, 0);
+//                    return true;
+//                }
+//            }
+//        }
+//        if (event.getRepeatCount() == 25) {
+//            if (keyCode == KeyEvent.KEYCODE_BACK) {
 //                InputConnection inputConnection = getCurrentInputConnection();
 //                CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
 //                CharSequence textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
@@ -334,8 +312,35 @@ public class PinyinIME extends InputMethodService {
 //                    inputConnection.deleteSurroundingText(0, 1);
 //                    textAfterCursor = inputConnection.getTextAfterCursor(1, 0);
 //                }
+//                longBack = true;
 //                return true;
+//            }else if (keyCode == KeyEvent.KEYCODE_POUND) {
+//                Log.d(TAG, "发送锁屏广播");
+//                Intent lock = new Intent();
+//                lock.setAction("com.flyscale.keyguard");
+//                lock.putExtra("isOpen" , "true");
+////                sendBroadcast(lock);
+//            }
 //        }
+        if (processKey(event, false))
+            return true;
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
+        if (keyCode == KeyEvent.KEYCODE_BACK && longBack) {
+            longBack = false;
+            return true;
+        }
+        if (processKey(event, true))
+            return true;
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
         return super.onKeyLongPress(keyCode, event);
     }
 
@@ -820,11 +825,13 @@ public class PinyinIME extends InputMethodService {
         }
 
         if (keyCode == KeyEvent.KEYCODE_POWER) {
-            mSkbContainer.handleBack(realAction);
-            Log.d(TAG, "按power键，转为数字按键");
-            mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
-            showCandidateWindow(false);
-            return true;
+            if (realAction) {
+                mSkbContainer.handleBack(realAction);
+                Log.d(TAG, "按power键，转为数字按键");
+                mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                showCandidateWindow(false, KeyEvent.KEYCODE_POWER);
+                return true;
+            }
         }
 
         //bianjb--添加中英文切换，'#'切换
@@ -840,7 +847,8 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mSurface.delete(0, mDecInfo.mSurface.length());
             mDecInfo.mSurfaceDecodedLen = 0;
             mDecInfo.mCursorPos = 0;
-            mInputModeSwitcher.toggleNextState();
+            String language = getResources().getConfiguration().locale.getLanguage();
+            mInputModeSwitcher.toggleNextState(language);
             mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
                     View.VISIBLE : View.GONE);
             //不管当前是什么状态，都置为INPUT状态，并不显示候选view
@@ -882,7 +890,8 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mCursorPos = 0;
             mDecInfo.inputKeyChars.clear();
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
-                mInputModeSwitcher.toggleNextState();
+                String language = getResources().getConfiguration().locale.getLanguage();
+                mInputModeSwitcher.toggleNextState(language);
                 setCandidatesViewShown(false);
             } else {
                 //如果当前是输入中文或者英文状态就切换到输入字符状态
@@ -917,7 +926,8 @@ public class PinyinIME extends InputMethodService {
                 //如果是输入符号模式，输入一个后就退回到之前的输入模式
                 if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
                     mDecInfo.reset();
-                    mInputModeSwitcher.toggleNextState();
+                    String language = getResources().getConfiguration().locale.getLanguage();
+                    mInputModeSwitcher.toggleNextState(language);
                     setCandidatesViewShown(false);
                 }
                 return true;
@@ -1233,10 +1243,10 @@ public class PinyinIME extends InputMethodService {
             // 选择高亮的候选词
             chooseCandidate(-1);
             //bianjb--清除候选拼音组合
-            mCandidatesContainer.clearSplList();
-            mDecInfo.clearSurface();
-            mDecInfo.clearInputKeys();
-            mDecInfo.clearnCandidateSplArr();
+//            mCandidatesContainer.clearSplList();
+//            mDecInfo.clearSurface();
+//            mDecInfo.clearInputKeys();
+//            mDecInfo.clearnCandidateSplArr();
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (!realAction)
@@ -1703,7 +1713,7 @@ public class PinyinIME extends InputMethodService {
             mSkbContainer.toggleCandidateMode(true);
         }
         boolean chineseMode = mInputModeSwitcher.isChineseMode();
-        showCandidateWindow(chineseMode ? true : false);
+        showCandidateWindow(chineseMode ? true : false, -1);
     }
 
     /**
@@ -1744,7 +1754,7 @@ public class PinyinIME extends InputMethodService {
      * @param visible
      */
     private void updateComposingText(boolean visible) {
-        Log.d(TAG, "updateComposingText()");
+        Log.d(TAG, "updateComposingText(),visible=" + visible);
         if (!visible) {
             mComposingView.setVisibility(View.INVISIBLE);
         } else {
@@ -1789,6 +1799,7 @@ public class PinyinIME extends InputMethodService {
 
         mImeState = ImeState.STATE_IDLE;
         mDecInfo.reset();
+        mDecInfo.clearnCandidateSplArr();
 
         // 重置显示输入拼音字符串的 View
         if (null != mComposingView)
@@ -1857,7 +1868,7 @@ public class PinyinIME extends InputMethodService {
                 }
 
                 if (mDecInfo.mCandidatesList.size() > 0) {
-                    showCandidateWindow(false);
+                    showCandidateWindow(false, -1);
                 } else {
                     resetToIdleState(false);
                 }
@@ -1873,7 +1884,7 @@ public class PinyinIME extends InputMethodService {
                         changeToStateComposing(true);
                     }
                 }
-                showCandidateWindow(true);
+                showCandidateWindow(true, -1);
             }
         } else {
             resetToIdleState(false);
@@ -1958,6 +1969,7 @@ public class PinyinIME extends InputMethodService {
                 R.drawable.candidate_balloon_bg));
         mCandidatesContainer.initialize(mChoiceNotifier, mCandidatesBalloon,
                 mGestureDetectorCandidates);
+        mCandidatesContainer.resetSplCursor();
 
         // The floating window
         if (null != mFloatingWindow && mFloatingWindow.isShowing()) {
@@ -2058,7 +2070,7 @@ public class PinyinIME extends InputMethodService {
      *
      * @param showComposingView 是否显示输入的拼音View
      */
-    private void showCandidateWindow(boolean showComposingView) {
+    private void showCandidateWindow(boolean showComposingView, int keycode) {
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "Candidates window is shown. Parent = "
                     + mCandidatesContainer);
@@ -2069,8 +2081,12 @@ public class PinyinIME extends InputMethodService {
         } else if (mInputModeSwitcher.isChineseMode()) {
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
         }
-//        setCandidatesViewShown(false);
-        setCandidatesViewShown(true);
+        if (keycode == KeyEvent.KEYCODE_POWER){
+            setCandidatesViewShown(false);
+        }else {
+            //联想,设置为false就不开始联想了，在联想的时候会闪动一下，这应该修改显示的逻辑
+            setCandidatesViewShown(true);
+        }
 
         if (null != mSkbContainer)
             mSkbContainer.requestLayout();
@@ -2083,8 +2099,9 @@ public class PinyinIME extends InputMethodService {
         //不再显示composingview--bianjb
         showComposingView = false;
         updateComposingText(showComposingView);
-        mCandidatesContainer.showCandidates(mDecInfo,
-                ImeState.STATE_COMPOSING != mImeState);
+        if (!(mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB))
+            mCandidatesContainer.showCandidates(mDecInfo,
+                    ImeState.STATE_COMPOSING != mImeState);
         mFloatingWindowTimer.postShowFloatingWindow();
     }
 
@@ -2136,7 +2153,7 @@ public class PinyinIME extends InputMethodService {
 
         if (null != mCandidatesContainer && mCandidatesContainer.isShown()) {
             Log.d(TAG, "resetCandidateWindow:: 隐藏candiatewindow");
-            showCandidateWindow(false);
+            showCandidateWindow(false, -1);
         }
     }
 
@@ -2237,7 +2254,7 @@ public class PinyinIME extends InputMethodService {
             mImeState = ImeState.STATE_APP_COMPLETION;
             // 准备从app获取候选词
             mDecInfo.prepareAppCompletions(completions);
-            showCandidateWindow(false);
+            showCandidateWindow(false, -1);
         }
     }
 
@@ -2997,7 +3014,8 @@ public class PinyinIME extends InputMethodService {
          * bianjb--清除所有拼音组合
          */
         public void clearnCandidateSplArr() {
-            candidateSplArr.clear();
+            if (candidateSplArr != null)
+                candidateSplArr.clear();
         }
 
         public ArrayList<char[]> getCandidateSplArr() {
@@ -3813,7 +3831,6 @@ public class PinyinIME extends InputMethodService {
                     ", index=" + index +
                     '}';
         }
-
 
     }
 }

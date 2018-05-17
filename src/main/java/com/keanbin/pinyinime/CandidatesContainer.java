@@ -264,6 +264,10 @@ public class CandidatesContainer extends LinearLayout implements
         return mCurrSplCursorPos;
     }
 
+    public void resetSplCursor(){
+        mCurrSplCursorPos = 0;
+    }
+
     /**
      * 候选字符串光标向前后移
      * bianjb

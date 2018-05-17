@@ -17,6 +17,7 @@
 package com.keanbin.pinyinime;
 
 import android.content.res.Resources;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.inputmethod.EditorInfo;
@@ -495,7 +496,7 @@ public class InputModeSwitcher {
             case EditorInfo.TYPE_CLASS_TEXT:
                 String locale = Locale.getDefault().getLanguage();
                 Log.d(TAG, "locale=" + locale);
-                if (TextUtils.equals("zh", locale)) {
+                if (locale.contains("zh") || locale.contains("ZH")) {
                     mCurrentInputMode = MODE_CHINESE;
                 } else {
                     mCurrentInputMode = MODE_LOWERCASE;
@@ -522,37 +523,102 @@ public class InputModeSwitcher {
     }
 
     /**
+     * 获取当前的系统语言
+     *
+     * @return
+     */
+    private String getLocale() {
+
+        return Build.BOARD;
+    }
+
+    /**
      * 切换至下一个输入状态
      * CHINESE->LOWERCASE->UPPERCASE->CHINESE
      * SYMBOL->mLastInputMode->SYMBOL
      */
-    public void toggleNextState() {
-        switch (mCurrentInputMode) {
-            case MODE_CHINESE:
-                mCurrentInputMode = MODE_LOWERCASE;
-                break;
-            case MODE_LOWERCASE:
-                mCurrentInputMode = MODE_UPPERCASE;
-                break;
-            case MODE_UPPERCASE:
-                mCurrentInputMode = MODE_PT_LOWER;
-                break;
-            case MODE_PT_LOWER:
-                mCurrentInputMode = MODE_PT_UPPER;
-                break;
-            case MODE_PT_UPPER:
-                mCurrentInputMode = MODE_NUMBER;
-                break;
-            case MODE_NUMBER:
-                mCurrentInputMode = MODE_CHINESE;
+    public void toggleNextState(String language) {
+        Log.d(TAG, "toggleNextState::language=" + language);
+        if (language.contains("zh") || language.contains("ZH")) {
+            switch (mCurrentInputMode) {
+                case MODE_CHINESE:
+                    mCurrentInputMode = MODE_LOWERCASE;
+                    break;
+                case MODE_LOWERCASE:
+                    mCurrentInputMode = MODE_UPPERCASE;
+                    break;
+                case MODE_UPPERCASE:
+//                    mCurrentInputMode = MODE_PT_LOWER;
+//                    break;
+//                case MODE_PT_LOWER:
+//                    mCurrentInputMode = MODE_PT_UPPER;
+//                    break;
+//                case MODE_PT_UPPER:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+                    mCurrentInputMode = MODE_CHINESE;
 //                mCurrentInputMode = MODE_LOWERCASE;
-                break;
-            case MODE_SYMBOL:
-                mCurrentInputMode = mLastInputMode;
-                break;
-            case MODE_UNSETTED:
-                break;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
+        } else if (language.contains("pt") || language.contains("PT")) {
+            switch (mCurrentInputMode) {
+//                case MODE_CHINESE:
+//                    mCurrentInputMode = MODE_LOWERCASE;
+//                    break;
+                case MODE_LOWERCASE:
+                    mCurrentInputMode = MODE_UPPERCASE;
+                    break;
+                case MODE_UPPERCASE:
+                    mCurrentInputMode = MODE_PT_LOWER;
+                    break;
+                case MODE_PT_LOWER:
+                    mCurrentInputMode = MODE_PT_UPPER;
+                    break;
+                case MODE_PT_UPPER:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+//                    mCurrentInputMode = MODE_CHINESE;
+                    mCurrentInputMode = MODE_LOWERCASE;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
+        }else {
+            switch (mCurrentInputMode) {
+                case MODE_LOWERCASE:
+                    mCurrentInputMode = MODE_UPPERCASE;
+                    break;
+                case MODE_UPPERCASE:
+//                    mCurrentInputMode = MODE_PT_LOWER;
+//                    break;
+//                case MODE_PT_LOWER:
+//                    mCurrentInputMode = MODE_PT_UPPER;
+//                    break;
+//                case MODE_PT_UPPER:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+//                    mCurrentInputMode = MODE_CHINESE;
+                    mCurrentInputMode = MODE_LOWERCASE;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
         }
+
         Log.e(TAG, "toggleNextState::mCurrentInputMode=" + mCurrentInputMode);
     }
 
