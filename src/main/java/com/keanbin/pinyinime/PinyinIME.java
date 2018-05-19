@@ -289,16 +289,16 @@ public class PinyinIME extends InputMethodService {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyDown() repeatecount=" + event.getRepeatCount());
-//        if (event.getRepeatCount() > 15 && event.getRepeatCount() % 5 == 0) {
-//            if (keyCode == KeyEvent.KEYCODE_BACK) {
-//                InputConnection inputConnection = getCurrentInputConnection();
-//                CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
-//                if (!TextUtils.isEmpty(textBeforeCursor)) {
-//                    inputConnection.deleteSurroundingText(1, 0);
-//                    return true;
-//                }
-//            }
-//        }
+        if (event.getRepeatCount() > 5 && event.getRepeatCount() % 5 == 0) {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                InputConnection inputConnection = getCurrentInputConnection();
+                CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
+                if (!TextUtils.isEmpty(textBeforeCursor)) {
+                    inputConnection.deleteSurroundingText(1, 0);
+                    return true;
+                }
+            }
+        }
 //        if (event.getRepeatCount() == 25) {
 //            if (keyCode == KeyEvent.KEYCODE_BACK) {
 //                InputConnection inputConnection = getCurrentInputConnection();
@@ -2083,11 +2083,17 @@ public class PinyinIME extends InputMethodService {
         } else if (mInputModeSwitcher.isChineseMode()) {
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
         }
-        if (keycode == KeyEvent.KEYCODE_POWER){
+        if (keycode == KeyEvent.KEYCODE_POWER) {
             setCandidatesViewShown(false);
-        }else {
+        } else {
             //联想,设置为false就不开始联想了，在联想的时候会闪动一下，这应该修改显示的逻辑
-            setCandidatesViewShown(true);
+            Log.d(TAG, "ImeState=" + mImeState);
+            if (mImeState == ImeState.STATE_IDLE) {
+                Log.d(TAG, "ImeState.STATE_CHOOSING");
+                setCandidatesViewShown(false);
+            } else {
+                setCandidatesViewShown(true);
+            }
         }
 
         if (null != mSkbContainer)
