@@ -109,7 +109,7 @@ public class Environment {
 	private int mNormalBalloonTextSize; // 正常按键气泡中文本的大小
 	private int mFunctionBalloonTextSize; // 功能按键气泡中文本的大小
 	private Configuration mConfig = new Configuration();
-	private boolean mDebug = false;
+	private boolean mDebug = true;
 
 	private Environment() {
 	}

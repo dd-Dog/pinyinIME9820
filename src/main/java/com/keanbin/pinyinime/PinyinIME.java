@@ -59,6 +59,9 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import com.keanbin.pinyinime.db.StrokeDAO;
+import com.keanbin.pinyinime.service.LoadService;
+import com.keanbin.pinyinime.utils.ChineseStroke;
 import com.keanbin.pinyinime.utils.MyToast;
 import com.keanbin.pinyinime.utils.PTAlpha;
 import com.keanbin.pinyinime.utils.T92Pinyin;
@@ -72,7 +75,7 @@ public class PinyinIME extends InputMethodService {
      */
     static final String TAG = "PinyinIME";
     private static final int SYMBOL_LIST = 1000;
-    static PinyinIME pinyinIME;
+    public static PinyinIME pinyinIME;
     /**
      * If is is true, IME will simulate key events for delete key, and send the
      * events back to the application.
@@ -191,7 +194,8 @@ public class PinyinIME extends InputMethodService {
         }
     };
     private int mInputType;
-//    private KeyCodeReceiver keyCodeReceiver;
+    private StrokeDAO mStrokeDAO;
+    //    private KeyCodeReceiver keyCodeReceiver;
 
     @Override
     public void onCreate() {
@@ -200,7 +204,7 @@ public class PinyinIME extends InputMethodService {
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "onCreate.");
         }
-
+        mStrokeDAO = new StrokeDAO(getApplicationContext());
         super.onCreate();
         pinyinIME = this;
 
@@ -324,19 +328,19 @@ public class PinyinIME extends InputMethodService {
 //        }
         if (processKey(event, false))
             return true;
-        return super.onKeyDown(keyCode, event);
+        boolean superResult = super.onKeyDown(keyCode, event);
+        Log.d(TAG, "superResult=" + superResult);
+        return false;
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
-        if (keyCode == KeyEvent.KEYCODE_BACK && longBack) {
-            longBack = false;
-            return true;
-        }
         if (processKey(event, true))
             return true;
-        return super.onKeyUp(keyCode, event);
+        boolean superResult = super.onKeyUp(keyCode, event);
+        Log.d(TAG, "superResult=" + superResult);
+        return false;
     }
 
     @Override
@@ -458,7 +462,13 @@ public class PinyinIME extends InputMethodService {
         }
 
         Log.e(TAG, "mCurrnetInputMode=" + mInputModeSwitcher.getCurrentInputMode());
-        if (mInputModeSwitcher.isPortuguese()) {
+        if (mInputModeSwitcher.isStroke()) {
+            if (mImeState == ImeState.STATE_IDLE) {
+                return processStateStrokeIdle(keyChar, keyCode, event, realAction);
+            } else if (mImeState == ImeState.STATE_INPUT) {
+                return processStateStrokeInput(keyChar, keyCode, event, realAction);
+            }
+        } else if (mInputModeSwitcher.isPortuguese()) {
             if (mImeState == ImeState.STATE_IDLE) {
                 return processStatePortugueseIdle(keyChar, keyCode, event, realAction);
             } else if (mImeState == ImeState.STATE_INPUT) {
@@ -501,6 +511,88 @@ public class PinyinIME extends InputMethodService {
                 // 发送文本给EditText
                 commitResultText(String.valueOf((char) keyChar));
             }
+        }
+        return false;
+    }
+
+    private boolean processStateStrokeIdle(int keyChar, int keyCode,
+                                           KeyEvent event, boolean realAction) {
+        Log.d(TAG, "processStateStrokeIdle");
+        if (realAction) {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
+                mDecInfo.addStrokeChar(keyCode, false);
+                mDecInfo.setmCandidatesList(keyChar);
+                mCandidatesContainer.setSplListVisibility(View.VISIBLE);
+                mDecInfo.mPageStart.clear();
+                mDecInfo.mPageStart.add(0);
+                mDecInfo.mCnToPage.clear();
+                mDecInfo.mCnToPage.add(0);
+                changeToStateInput(true);
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                // 发送删除一个字符的操作给 EditText
+                InputConnection ic = getCurrentInputConnection();
+                Log.d(TAG, "getCurrentInputConnection=" + ic);
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                if (TextUtils.isEmpty(textBeforeCursor)) {
+                    mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                    Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
+                    return false;
+                }
+                Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
+                boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
+                Log.d(TAG, "删除操作b=" + b);
+                return true;
+            }
+        } else {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                //英文输入状态下，0-9这几个按键的down事件返回true，不能被作其它处理--bianjb
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean processStateStrokeInput(int keyChar, int keyCode, KeyEvent event, boolean
+            realAction) {
+        Log.d(TAG, "processStateStrokeInput");
+        if (!realAction) {
+            return true;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            resetToIdleState(true);
+//            setCandidatesViewShown(false);
+            requestHideSelf(0);
+            return true;
+        }
+
+        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
+            mDecInfo.addStrokeChar(keyCode, false);
+            mDecInfo.setmCandidatesList(keyChar);
+            mCandidatesContainer.setSplListVisibility(View.VISIBLE);
+            mDecInfo.mPageStart.clear();
+            mDecInfo.mPageStart.add(0);
+            mDecInfo.mCnToPage.clear();
+            mDecInfo.mCnToPage.add(0);
+            changeToStateInput(true);
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                // 高亮位置向上一个候选词移动或者移动到上一页的最后一个候选词的位置。
+                mCandidatesContainer.activeCurseBackward();
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                mCandidatesContainer.activeCurseForward();
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+
+            }
+            return true;
         }
         return false;
     }
@@ -817,16 +909,18 @@ public class PinyinIME extends InputMethodService {
         // 后退键的处理。副软键盘弹出框显示的时候，如果realAction为true，那么就调用dismissPopupSkb（）隐藏副软键盘弹出框，显示主软键盘视图。
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (isInputViewShown()) {
-                if (mSkbContainer.handleBack(realAction))
+                if (mSkbContainer.handleBack(realAction)) {
+                    Log.d(TAG, "inputview shown,dismiss");
                     return true;
+                }
             }
-
             return false;
         }
 
         if (keyCode == KeyEvent.KEYCODE_POWER) {
             if (realAction) {
-                mSkbContainer.handleBack(realAction);
+                if (mSkbContainer != null)
+                    mSkbContainer.handleBack(realAction);
                 Log.d(TAG, "按power键，转为数字按键");
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
                 showCandidateWindow(false, KeyEvent.KEYCODE_POWER);
@@ -859,6 +953,9 @@ public class PinyinIME extends InputMethodService {
                 case InputModeSwitcher.MODE_CHINESE:
                     MyToast.show(this, "拼音");
                     break;
+                case InputModeSwitcher.MODE_CHINESE_STROKE:
+                    MyToast.show(this, "笔画");
+                    break;
                 case InputModeSwitcher.MODE_UPPERCASE:
                     MyToast.show(this, "ABC");
                     break;
@@ -875,8 +972,10 @@ public class PinyinIME extends InputMethodService {
                     MyToast.show(this, "PT");
                     break;
             }
-//            changeToStateInput(true);
+            mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
+            resetToIdleState(true);
             setCandidatesViewShown(false);
+
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_STAR) {
             if (!realAction) {
@@ -1810,6 +1909,10 @@ public class PinyinIME extends InputMethodService {
         resetCandidateWindow();
     }
 
+    private void chooseStroke(int cndId) {
+        Log.d(TAG, "chooseStroke()");
+    }
+
     /**
      * 选择候选词，并根据条件是否进行下一步的预报。
      *
@@ -1943,6 +2046,7 @@ public class PinyinIME extends InputMethodService {
         }
 
         LayoutInflater inflater = getLayoutInflater();
+
 
         /**
          * 如果不是中文输入状态，加载不同的candidateview--bianjb
@@ -2830,6 +2934,7 @@ public class PinyinIME extends InputMethodService {
          */
         public boolean mIsPosInSpl;
         private Object inputKey;
+        public int mCurrentInputMode;
 
         public DecodingInfo() {
             mSurface = new StringBuffer();
@@ -2883,10 +2988,16 @@ public class PinyinIME extends InputMethodService {
          * 根据输入，更新拼音组合的数组
          */
         private ArrayList<char[]> candidateSplArr = new ArrayList<>();
+        private ArrayList<String> candidateStrokeArr = new ArrayList<>();
         private ArrayList<Character> inputKeyChars = new ArrayList<>();
 
         public void addInputKey(char c) {
+            Log.d(TAG, "addInputKey,c=" + c);
             inputKeyChars.add(c);
+        }
+
+        public ArrayList<String> getCandidateStrokeArr() {
+            return candidateStrokeArr;
         }
 
         /**
@@ -2956,6 +3067,13 @@ public class PinyinIME extends InputMethodService {
                 for (int i = 0; i < chars.length; i++) {
                     mCandidatesList.add(chars[i] + "");
                 }
+            } else if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE_STROKE) {
+                ArrayList<String> query = mStrokeDAO.query(getInputKey(), 20);
+                Log.d(TAG, "query=" + query);
+                if (mCandidatesList != null && query != null) {
+                    mCandidatesList.clear();
+                    mCandidatesList.addAll(query);
+                }
             } else {
                 int base = 0;
                 if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_UPPERCASE) {
@@ -3012,10 +3130,19 @@ public class PinyinIME extends InputMethodService {
         }
 
         /**
-         * bianjb--获取匹配的所有拼音组合
+         * bianjb--获取匹配的所有拼音/笔画组合
          */
         public void updateCandidateSplArr() {
-            candidateSplArr = T92Pinyin.getSplStrs(getInputKey());
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE) {
+                candidateSplArr = T92Pinyin.getSplStrs(getInputKey());
+            }
+        }
+
+        public void updateCandidateStrokeArr() {
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE_STROKE) {
+                candidateStrokeArr = ChineseStroke.getStrokes(getInputKey());
+                Log.d(TAG, "updateCandidateStrokeArr::candidateStrokeArr=" + candidateStrokeArr);
+            }
         }
 
         /**
@@ -3051,6 +3178,64 @@ public class PinyinIME extends InputMethodService {
             //bianjb--把按键输入保存起来
             mDecInfo.addInputKey(char2code(ch));
             mDecInfo.updateCandidateSplArr();
+
+
+            mSurface.insert(mCursorPos, ch);
+            Log.e(TAG, "DecodeInfo::addSplChar()" + "mSurface=" + mSurface.toString());
+            mCursorPos++;
+        }
+
+        /**
+         * 增加笔画
+         *
+         * @param ch
+         * @param reset 拼写字符是否重置
+         */
+        public void addStrokeChar(int ch, boolean reset) {
+            Log.e(TAG, "DecodeInfo::addStrokeChar()::char=" + ch + ",reset=" + reset);
+            if (reset) {
+                mSurface.delete(0, mSurface.length());
+                mSurfaceDecodedLen = 0;
+                mCursorPos = 0;
+                /*try {
+                    mIPinyinDecoderService.imResetSearch();
+                } catch (RemoteException e) {
+                }*/
+            }
+
+            //bianjb--把按键输入保存起来
+            char c = '0';
+            switch (ch) {
+                case KeyEvent.KEYCODE_1:
+                    c = '1';
+                    break;
+                case KeyEvent.KEYCODE_2:
+                    c = '2';
+                    break;
+                case KeyEvent.KEYCODE_3:
+                    c = '3';
+                    break;
+                case KeyEvent.KEYCODE_4:
+                    c = '4';
+                    break;
+                case KeyEvent.KEYCODE_5:
+                    c = '5';
+                    break;
+                case KeyEvent.KEYCODE_6:
+                    c = '6';
+                    break;
+                case KeyEvent.KEYCODE_7:
+                    c = '7';
+                    break;
+                case KeyEvent.KEYCODE_8:
+                    c = '8';
+                    break;
+                case KeyEvent.KEYCODE_9:
+                    c = '9';
+                    break;
+            }
+            mDecInfo.addInputKey(c);
+            mDecInfo.updateCandidateStrokeArr();
 
 
             mSurface.insert(mCursorPos, ch);
@@ -3303,22 +3488,19 @@ public class PinyinIME extends InputMethodService {
                             mPyBuf[length()] = 0;
 
                             if (mPosDelSpl < 0) {
-                                totalChoicesNum = mIPinyinDecoderService
-                                        .imSearch(mPyBuf, length());
+                                totalChoicesNum = mIPinyinDecoderService.imSearch(mPyBuf, length());
                             } else {
                                 boolean clear_fixed_this_step = true;
                                 if (ImeState.STATE_COMPOSING == mImeState) {
                                     clear_fixed_this_step = false;
                                 }
-                                totalChoicesNum = mIPinyinDecoderService
-                                        .imDelSearch(mPosDelSpl, mIsPosInSpl,
-                                                clear_fixed_this_step);
+                                totalChoicesNum = mIPinyinDecoderService.imDelSearch(mPosDelSpl, mIsPosInSpl,
+                                        clear_fixed_this_step);
                                 mPosDelSpl = -1;
                             }
                         }
                     } else {
-                        totalChoicesNum = mIPinyinDecoderService
-                                .imChoose(candId);
+                        totalChoicesNum = mIPinyinDecoderService.imChoose(candId);
                     }
                 } catch (RemoteException e) {
                 }

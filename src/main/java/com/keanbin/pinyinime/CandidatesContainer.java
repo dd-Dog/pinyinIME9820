@@ -242,7 +242,31 @@ public class CandidatesContainer extends LinearLayout implements
         invalidate();
 
         //bianjb--显示拼音组合
+        if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE){
+            showSplListStroke(decInfo.getCandidateStrokeArr());
+        }else {
+
         showSplList(decInfo.getCandidateSplArr());
+        }
+    }
+
+    private void showSplListStroke(ArrayList<String> candidateStrokeArr) {
+        Log.e(TAG, "showSplListStroke");
+        mSplList.removeAllViews();
+//        if (candidateSplArr == null || candidateSplArr.size() ==0) {
+//            setSplListVisibility(View.GONE);
+//            return;
+//        }
+//        setSplListVisibility(View.VISIBLE);
+        for (int i = 0; i < candidateStrokeArr.size(); i++) {
+            TextView view = new TextView(getContext());
+            Log.d(TAG, "candidateStrokeArr.i=" + candidateStrokeArr.get(i));
+            view.setText(candidateStrokeArr.get(i));
+            view.setTextSize(16);
+            view.setTextColor(Color.BLACK);
+            view.setPadding(1, 0, 4, 0);
+            mSplList.addView(view);
+        }
     }
 
     /**

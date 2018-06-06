@@ -379,6 +379,10 @@ public class InputModeSwitcher {
         return mCurrentInputMode == MODE_PT_LOWER || mCurrentInputMode == MODE_PT_UPPER;
     }
 
+    public boolean isStroke() {
+        return mCurrentInputMode == MODE_CHINESE_STROKE;
+    }
+
     /**
      * 控制当前输入法模式软键盘布局要显示的按键切换状态和要显示的行ID的管理类。比如当前软键盘布局中
      * ，有一个按键有默认状态、和两个切换状态，ToggleStates中的mKeyStates[]保存的就是当前要显示的切换状态
@@ -476,6 +480,7 @@ public class InputModeSwitcher {
     public static final int MODE_HKB = 1005;
     public static final int MODE_PT_LOWER = 1007;
     public static final int MODE_PT_UPPER = 1008;
+    public static final int MODE_CHINESE_STROKE = 1009;
     private int mCurrentInputMode = MODE_HKB;
     private int mLastInputMode = MODE_UNSET;
     private static final String TAG = "InputModeSwitcher";
@@ -542,6 +547,9 @@ public class InputModeSwitcher {
         if (language.contains("zh") || language.contains("ZH")) {
             switch (mCurrentInputMode) {
                 case MODE_CHINESE:
+                    mCurrentInputMode = MODE_CHINESE_STROKE;
+                    break;
+                case MODE_CHINESE_STROKE:
                     mCurrentInputMode = MODE_LOWERCASE;
                     break;
                 case MODE_LOWERCASE:

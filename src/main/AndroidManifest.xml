@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.READ_USER_DICTIONARY" />
     <uses-permission android:name="android.permission.WRITE_USER_DICTIONARY" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:allowBackup="true"
@@ -43,9 +44,12 @@
         <service android:name="com.keanbin.pinyinime.PinyinDecoderService" >
         </service>
 
-        <receiver android:name="MyReceiver" >
+        <service android:name="com.keanbin.pinyinime.service.LoadService"/>
+
+        <receiver android:name=".receiver.MyReceiver" >
             <intent-filter>
                 <action android:name="android.intent.idatachina.RFID.BARCODE.SCANINFO" />
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
     </application>
