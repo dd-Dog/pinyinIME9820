@@ -215,7 +215,7 @@ public class PinyinIME extends InputMethodService {
         Settings.getInstance(PreferenceManager
                 .getDefaultSharedPreferences(getApplicationContext()));
 
-        mInputModeSwitcher = new InputModeSwitcher(this);
+        mInputModeSwitcher = new InputModeSwitcher(this, getApplicationContext());
         mChoiceNotifier = new ChoiceNotifier(this);
         mGestureListenerSkb = new OnGestureListener(false);
         mGestureListenerCandidates = new OnGestureListener(true);
@@ -943,8 +943,9 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mCursorPos = 0;
             String language = getResources().getConfiguration().locale.getLanguage();
             mInputModeSwitcher.toggleNextState(language);
-            mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
-                    View.VISIBLE : View.GONE);
+            if (mCandidatesContainer != null && mInputModeSwitcher != null)
+                mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
+                        View.VISIBLE : View.GONE);
             //不管当前是什么状态，都置为INPUT状态，并不显示候选view
             switch (mInputModeSwitcher.getCurrentInputMode()) {
                 case InputModeSwitcher.MODE_LOWERCASE:

@@ -52,6 +52,12 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
+
+        <!--exported属性在17及以后默认为false-->
+        <provider
+            android:exported="true"
+            android:authorities="com.flyscale.ime.provider"
+            android:name=".provider.IMEProvider"/>
     </application>
 
 </manifest>

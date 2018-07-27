@@ -16,6 +16,8 @@
 
 package com.keanbin.pinyinime;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Build;
 import android.text.TextUtils;
@@ -23,6 +25,7 @@ import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 
 import com.keanbin.pinyinime.SoftKeyboard.KeyRow;
+import com.keanbin.pinyinime.constant.Constants;
 
 import java.util.Locale;
 
@@ -429,8 +432,10 @@ public class InputModeSwitcher {
         public int mKeyStatesNum;
     }
 
-    public InputModeSwitcher(PinyinIME imeService) {
+    private Context mContext;
+    public InputModeSwitcher(PinyinIME imeService, Context context) {
         mImeService = imeService;
+        mContext = context;
         Resources r = mImeService.getResources();
 
         // 初始化按键各种切换状态的ID 和 行的ID
@@ -471,16 +476,16 @@ public class InputModeSwitcher {
     /**
      * 定义新的输入法模式--bianjb
      */
-    public static final int MODE_UNSETTED = 1000;
-    public static final int MODE_CHINESE = 1001;
-    public static final int MODE_LOWERCASE = 1002;
-    public static final int MODE_UPPERCASE = 1003;
-    public static final int MODE_SYMBOL = 1004;
-    public static final int MODE_NUMBER = 1006;
-    public static final int MODE_HKB = 1005;
-    public static final int MODE_PT_LOWER = 1007;
-    public static final int MODE_PT_UPPER = 1008;
-    public static final int MODE_CHINESE_STROKE = 1009;
+    public static final int MODE_UNSETTED = 1000;//未设置
+    public static final int MODE_CHINESE = 1001;//拼音
+    public static final int MODE_LOWERCASE = 1002;//英文小写
+    public static final int MODE_UPPERCASE = 1003;//英文大写
+    public static final int MODE_SYMBOL = 1004;//符号
+    public static final int MODE_NUMBER = 1006;//数字
+    public static final int MODE_HKB = 1005;//接受键盘输入
+    public static final int MODE_PT_LOWER = 1007;//葡语小写
+    public static final int MODE_PT_UPPER = 1008;//葡语大写
+    public static final int MODE_CHINESE_STROKE = 1009;//笔画
     private int mCurrentInputMode = MODE_HKB;
     private int mLastInputMode = MODE_UNSET;
     private static final String TAG = "InputModeSwitcher";
@@ -510,6 +515,7 @@ public class InputModeSwitcher {
             default:
                 break;
         }
+        saveInputModeFlyscale(mCurrentInputMode);
         Log.e(TAG, "mCurrentInputMode=" + mCurrentInputMode);
 
     }
@@ -626,8 +632,15 @@ public class InputModeSwitcher {
                     break;
             }
         }
-
+        saveInputModeFlyscale(mCurrentInputMode);
         Log.e(TAG, "toggleNextState::mCurrentInputMode=" + mCurrentInputMode);
+    }
+
+    private void saveInputModeFlyscale(int mode) {
+        SharedPreferences sp = mContext.getSharedPreferences(Constants.SP, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(Constants.INPUT_MODE, mode + "");
+        editor.commit();
     }
 
     public boolean isChineseMode() {
@@ -659,6 +672,7 @@ public class InputModeSwitcher {
         mLastInputMode = mCurrentInputMode;
         mCurrentInputMode = mode;
         Log.e(TAG, "setCurrentInputMode::mCurrentInputMode=" + mCurrentInputMode);
+        saveInputModeFlyscale(mCurrentInputMode);
     }
 
 

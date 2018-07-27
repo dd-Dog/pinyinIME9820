@@ -81,7 +81,7 @@ public class LoadService extends IntentService {
             return true;
         }
         SharedPreferences.Editor editor = sp.edit();
-        editor.putBoolean("pinyinime", true);
+        editor.putBoolean("init_done", true);
         editor.commit();
         return false;
     }
