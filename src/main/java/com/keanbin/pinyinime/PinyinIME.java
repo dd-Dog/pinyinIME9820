@@ -989,7 +989,11 @@ public class PinyinIME extends InputMethodService {
                 mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
                         View.VISIBLE : View.GONE);
             //不管当前是什么状态，都置为INPUT状态，并不显示候选view
-            showToast();
+//            showToast();
+            Intent inputModeIntent = new Intent(Constants.INPUT_MODE_BROADCAST);
+            inputModeIntent.putExtra(Constants.INPUT_MODE, mInputModeSwitcher.getCurrentInputMode());
+            sendBroadcast(inputModeIntent);
+
             resetToIdleState(true);
             setCandidatesViewShown(false);
 
@@ -2379,7 +2383,7 @@ public class PinyinIME extends InputMethodService {
         mInputModeSwitcher.requestInputType(editorInfo);
         resetToIdleState(false);
         mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
-        showToastExNum();
+//        showToastExNum();
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
