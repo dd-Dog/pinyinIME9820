@@ -433,6 +433,7 @@ public class InputModeSwitcher {
     }
 
     private Context mContext;
+
     public InputModeSwitcher(PinyinIME imeService, Context context) {
         mImeService = imeService;
         mContext = context;
@@ -607,7 +608,7 @@ public class InputModeSwitcher {
                 case MODE_UNSETTED:
                     break;
             }
-        }else {
+        } else {
             switch (mCurrentInputMode) {
                 case MODE_LOWERCASE:
                     mCurrentInputMode = MODE_UPPERCASE;
@@ -637,6 +638,7 @@ public class InputModeSwitcher {
     }
 
     private void saveInputModeFlyscale(int mode) {
+        Log.d(TAG, "saveInputModeFlyscale,mode=" + mode);
         SharedPreferences sp = mContext.getSharedPreferences(Constants.SP, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString(Constants.INPUT_MODE, mode + "");
@@ -644,7 +646,7 @@ public class InputModeSwitcher {
     }
 
     public boolean isChineseMode() {
-        return mCurrentInputMode == MODE_CHINESE;
+        return mCurrentInputMode == MODE_CHINESE || mCurrentInputMode == MODE_CHINESE_STROKE;
     }
 
     public boolean isEnglishMode() {

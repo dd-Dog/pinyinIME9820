@@ -21,6 +21,9 @@ import java.util.HashMap;
  */
 
 public class IMEProvider extends ContentProvider {
+
+    private static final boolean DEBUG = true;
+
     private static final String AUTHORITY = "com.flyscale.ime.provider";
     //定义URI和对应的URI_CODE，并进行绑定
     private static final int INPUT_MODE_URI_CODE = 5001;
@@ -55,7 +58,10 @@ public class IMEProvider extends ContentProvider {
         for (int pos = 0; pos < columnCount; pos++) {
             if (pos == 0) {
                 SharedPreferences sp = getContext().getSharedPreferences(Constants.SP, Context.MODE_PRIVATE);
-                String inputmode = sp.getString(Constants.INPUT_MODE, Constants.MODE_HKB);
+//                String inputmode = sp.getString(Constants.INPUT_MODE, Constants.MODE_HKB);
+                String inputmode = sp.getString(Constants.INPUT_MODE, "invalid");
+                if (DEBUG)
+                    Log.d(TAG, "loadAllData,inputmode=" + inputmode);
                 dataList.add(inputmode);
             }
             allDatas.put(pos + "", dataList);
@@ -100,9 +106,9 @@ public class IMEProvider extends ContentProvider {
     }
 
 
+    private static final String TAG = "MyCursor";
 
     public class MyCursor extends AbstractCursor {
-        private static final String TAG = "MyCursor";
 
 
         /**
@@ -176,13 +182,15 @@ public class IMEProvider extends ContentProvider {
             if (oneLineData == null) {
                 return null;
             }
-            Log.i(TAG, "column=" + column + ",getString()=" + oneLineData.get(column));
+            if (DEBUG)
+                Log.i(TAG, "column=" + column + ",getString()=" + oneLineData.get(column));
             return oneLineData.get(column);
         }
 
         @Override
         public int getInt(int column) {
-            Log.i("MyCursor", "getInt, column=" + column);
+            if (DEBUG)
+                Log.i("MyCursor", "getInt, column=" + column);
             Object value = getString(column);
             try {
                 return value != null ? ((Number) value).intValue() : null;
@@ -191,11 +199,13 @@ public class IMEProvider extends ContentProvider {
                     try {
                         return Integer.valueOf(value.toString());
                     } catch (NumberFormatException e2) {
-                        Log.e(TAG, "Cannotparse int value for " + value + "at key " + column);
+                        if (DEBUG)
+                            Log.e(TAG, "Cannotparse int value for " + value + "at key " + column);
                         return 0;
                     }
                 } else {
-                    Log.e(TAG, "Cannotcast value for " + column + "to a int: " + value, e);
+                    if (DEBUG)
+                        Log.e(TAG, "Cannotcast value for " + column + "to a int: " + value, e);
                     return 0;
                 }
             }

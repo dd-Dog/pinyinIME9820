@@ -50,6 +50,8 @@
             <intent-filter>
                 <action android:name="android.intent.idatachina.RFID.BARCODE.SCANINFO" />
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.SCREEN_OFF"/>
+                <action android:name="android.intent.action.SCREEN_ON"/>
             </intent-filter>
         </receiver>
 

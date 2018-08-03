@@ -504,6 +504,8 @@ public class CandidateView extends View {
         // When the size is changed, the first page will be displayed.
         mPageNo = 0;
         mActiveCandInPage = 0;
+
+
     }
 
     /**

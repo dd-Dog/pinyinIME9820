@@ -33,10 +33,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.ContentObserver;
 import android.inputmethodservice.InputMethodService;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -59,6 +62,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import com.keanbin.pinyinime.constant.Constants;
 import com.keanbin.pinyinime.db.StrokeDAO;
 import com.keanbin.pinyinime.service.LoadService;
 import com.keanbin.pinyinime.utils.ChineseStroke;
@@ -190,9 +194,32 @@ public class PinyinIME extends InputMethodService {
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            SoundManager.getInstance(context).updateRingerMode();
+            String action = intent.getAction();
+            Log.d(TAG, "action=" + action);
+            if (TextUtils.equals(Intent.ACTION_SCREEN_OFF, action)) {
+                saveIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, mInputModeSwitcher.getCurrentInputMode());
+            }else if (TextUtils.equals(Intent.ACTION_SCREEN_ON, action)) {
+                int mode = getIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, InputModeSwitcher.MODE_HKB);
+                mInputModeSwitcher.setCurrentInputMode(mode);
+            }
         }
     };
+
+    private void saveIntSp(String key, int value) {
+        Log.d(TAG, "saveIntSp,key=" + key + ",value=" + value);
+        SharedPreferences sp = getSharedPreferences(Constants.SP, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt(key, value);
+        editor.commit();
+    }
+
+    private int getIntSp(String key, int defValue) {
+        Log.d(TAG, "getIntSp,key=" + key + ",defValue=" + defValue);
+        SharedPreferences sp = getSharedPreferences(Constants.SP, Context.MODE_PRIVATE);
+        int value = sp.getInt(key, defValue);
+        return value;
+    }
+
     private int mInputType;
     private StrokeDAO mStrokeDAO;
     //    private KeyCodeReceiver keyCodeReceiver;
@@ -248,9 +275,12 @@ public class PinyinIME extends InputMethodService {
     public void onUnbindInput() {
         super.onUnbindInput();
         mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+        mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
         Log.d(TAG, "setCandidatesViewShown(false)");
         setCandidatesViewShown(false);
         Log.d(TAG, "onUnbindInput");
+
+        unregisterReceiver(mReceiver);
     }
 
 
@@ -538,6 +568,7 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
                 if (TextUtils.isEmpty(textBeforeCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
                     return false;
                 }
@@ -627,6 +658,7 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
                 if (TextUtils.isEmpty(textBeforeCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
                     return false;
                 }
@@ -756,6 +788,7 @@ public class PinyinIME extends InputMethodService {
                 //删除按键，需要抬起和按下 都是返回false才行
                 if (TextUtils.isEmpty(textBeforeCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
                 }
                 return false;
@@ -825,6 +858,7 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
                 if (TextUtils.isEmpty(textBeforeCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
                     return false;
                 }
@@ -917,12 +951,17 @@ public class PinyinIME extends InputMethodService {
             return false;
         }
 
-        if (keyCode == KeyEvent.KEYCODE_POWER) {
-            if (realAction) {
+        if (keyCode == KeyEvent.KEYCODE_POWER && !realAction) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            boolean isScreenOn = pm.isScreenOn();
+            Log.d(TAG, "isScreenOn=" + isScreenOn);
+
+            if (realAction && isScreenOn) {
                 if (mSkbContainer != null)
                     mSkbContainer.handleBack(realAction);
                 Log.d(TAG, "按power键，转为数字按键");
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                 showCandidateWindow(false, KeyEvent.KEYCODE_POWER);
                 return true;
             }
@@ -933,6 +972,8 @@ public class PinyinIME extends InputMethodService {
             if (!realAction) {
                 return true;
             }
+
+
             //如果是输入类型是PHONE，也不进行切换
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
                 return true;
@@ -943,37 +984,12 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mCursorPos = 0;
             String language = getResources().getConfiguration().locale.getLanguage();
             mInputModeSwitcher.toggleNextState(language);
+            mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
             if (mCandidatesContainer != null && mInputModeSwitcher != null)
                 mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
                         View.VISIBLE : View.GONE);
             //不管当前是什么状态，都置为INPUT状态，并不显示候选view
-            switch (mInputModeSwitcher.getCurrentInputMode()) {
-                case InputModeSwitcher.MODE_LOWERCASE:
-                    MyToast.show(this, "abc");
-                    break;
-                case InputModeSwitcher.MODE_CHINESE:
-                    MyToast.show(this, "拼音");
-                    break;
-                case InputModeSwitcher.MODE_CHINESE_STROKE:
-                    MyToast.show(this, "笔画");
-                    break;
-                case InputModeSwitcher.MODE_UPPERCASE:
-                    MyToast.show(this, "ABC");
-                    break;
-                case InputModeSwitcher.MODE_NUMBER:
-                    MyToast.show(this, "123");
-                    break;
-                case InputModeSwitcher.MODE_HKB:
-                    MyToast.show(this, "123");
-                    break;
-                case InputModeSwitcher.MODE_PT_LOWER:
-                    MyToast.show(this, "pt");
-                    break;
-                case InputModeSwitcher.MODE_PT_UPPER:
-                    MyToast.show(this, "PT");
-                    break;
-            }
-            mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
+            showToast();
             resetToIdleState(true);
             setCandidatesViewShown(false);
 
@@ -992,10 +1008,12 @@ public class PinyinIME extends InputMethodService {
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
                 String language = getResources().getConfiguration().locale.getLanguage();
                 mInputModeSwitcher.toggleNextState(language);
+                mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                 setCandidatesViewShown(false);
             } else {
                 //如果当前是输入中文或者英文状态就切换到输入字符状态
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_SYMBOL);
+                mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                 mDecInfo.setmCandidatesList(SYMBOL_LIST);
                 mDecInfo.mPageStart.clear();
                 mDecInfo.mPageStart.add(0);
@@ -1028,6 +1046,7 @@ public class PinyinIME extends InputMethodService {
                     mDecInfo.reset();
                     String language = getResources().getConfiguration().locale.getLanguage();
                     mInputModeSwitcher.toggleNextState(language);
+                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     setCandidatesViewShown(false);
                 }
                 return true;
@@ -1113,6 +1132,58 @@ public class PinyinIME extends InputMethodService {
         return false;
     }
 
+    private void showToast() {
+        switch (mInputModeSwitcher.getCurrentInputMode()) {
+            case InputModeSwitcher.MODE_LOWERCASE:
+                MyToast.show(this, "abc");
+                break;
+            case InputModeSwitcher.MODE_CHINESE:
+                MyToast.show(this, "拼音");
+                break;
+            case InputModeSwitcher.MODE_CHINESE_STROKE:
+                MyToast.show(this, "笔画");
+                break;
+            case InputModeSwitcher.MODE_UPPERCASE:
+                MyToast.show(this, "ABC");
+                break;
+            case InputModeSwitcher.MODE_NUMBER:
+                MyToast.show(this, "123");
+                break;
+            case InputModeSwitcher.MODE_HKB:
+                MyToast.show(this, "123");
+                break;
+            case InputModeSwitcher.MODE_PT_LOWER:
+                MyToast.show(this, "pt");
+                break;
+            case InputModeSwitcher.MODE_PT_UPPER:
+                MyToast.show(this, "PT");
+                break;
+        }
+    }
+
+    private void showToastExNum() {
+        switch (mInputModeSwitcher.getCurrentInputMode()) {
+            case InputModeSwitcher.MODE_LOWERCASE:
+                MyToast.show(this, "abc");
+                break;
+            case InputModeSwitcher.MODE_CHINESE:
+                MyToast.show(this, "拼音");
+                break;
+            case InputModeSwitcher.MODE_CHINESE_STROKE:
+                MyToast.show(this, "笔画");
+                break;
+            case InputModeSwitcher.MODE_UPPERCASE:
+                MyToast.show(this, "ABC");
+                break;
+            case InputModeSwitcher.MODE_PT_LOWER:
+                MyToast.show(this, "pt");
+                break;
+            case InputModeSwitcher.MODE_PT_UPPER:
+                MyToast.show(this, "PT");
+                break;
+        }
+    }
+
     /**
      * 当 mImeState == ImeState.STATE_IDLE 或者 mImeState ==
      * ImeState.STATE_APP_COMPLETION 时的按键处理函数
@@ -1153,6 +1224,7 @@ public class PinyinIME extends InputMethodService {
             }
             if (TextUtils.isEmpty(textBeforeCursor)) {
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                 Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
                 return false;
             }
@@ -2049,14 +2121,6 @@ public class PinyinIME extends InputMethodService {
         LayoutInflater inflater = getLayoutInflater();
 
 
-        /**
-         * 如果不是中文输入状态，加载不同的candidateview--bianjb
-         */
-//        if (!mInputModeSwitcher.isChineseMode()) {
-//            View view = inflater.inflate(R.layout.candidates_english, null);
-//            return view;
-//        }
-
         // 设置显示输入拼音字符串View的集装箱
         // Inflate the floating container view
         mFloatingContainer = (LinearLayout) inflater.inflate(
@@ -2170,6 +2234,7 @@ public class PinyinIME extends InputMethodService {
                 mSkbContainer.updateInputMode();
             }
         }
+
     }
 
     /**
@@ -2183,11 +2248,16 @@ public class PinyinIME extends InputMethodService {
                     + mCandidatesContainer);
         }
         //在这里判断当前如果是预报状态，不显示候选拼音组合--bianjb
-        if (mImeState == ImeState.STATE_PREDICT) {
-            mCandidatesContainer.setSplListVisibility(View.GONE);
-        } else if (mInputModeSwitcher.isChineseMode()) {
-            mCandidatesContainer.setSplListVisibility(View.VISIBLE);
+        if (mCandidatesContainer != null) {
+            if (mImeState == ImeState.STATE_PREDICT) {
+                mCandidatesContainer.setSplListVisibility(View.GONE);
+            } else if (mInputModeSwitcher.isChineseMode()) {
+                mCandidatesContainer.setSplListVisibility(View.VISIBLE);
+            } else {
+                mCandidatesContainer.setSplListVisibility(View.GONE);
+            }
         }
+
         if (keycode == KeyEvent.KEYCODE_POWER) {
             setCandidatesViewShown(false);
         } else {
@@ -2308,6 +2378,13 @@ public class PinyinIME extends InputMethodService {
         }
         mInputModeSwitcher.requestInputType(editorInfo);
         resetToIdleState(false);
+        mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
+        showToastExNum();
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(mReceiver, intentFilter);
     }
 
     @Override

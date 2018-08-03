@@ -242,11 +242,10 @@ public class CandidatesContainer extends LinearLayout implements
         invalidate();
 
         //bianjb--显示拼音组合
-        if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE){
+        if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) {
             showSplListStroke(decInfo.getCandidateStrokeArr());
-        }else {
-
-        showSplList(decInfo.getCandidateSplArr());
+        } else if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE){
+            showSplList(decInfo.getCandidateSplArr());
         }
     }
 
@@ -288,7 +287,7 @@ public class CandidatesContainer extends LinearLayout implements
         return mCurrSplCursorPos;
     }
 
-    public void resetSplCursor(){
+    public void resetSplCursor() {
         mCurrSplCursorPos = 0;
     }
 
@@ -342,6 +341,7 @@ public class CandidatesContainer extends LinearLayout implements
 
     /**
      * 设置候选拼音组合 的view是否显示
+     *
      * @param visibility
      */
     public void setSplListVisibility(int visibility) {
@@ -397,11 +397,18 @@ public class CandidatesContainer extends LinearLayout implements
         Environment env = Environment.getInstance();
         int measuredWidth = env.getScreenWidth();
         int measuredHeight = getPaddingTop();
-		measuredHeight += env.getHeightForCandidates();
+        measuredHeight += env.getHeightForCandidates();
         //动态改变candidatesview的高度--bianjb
 //        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
         measuredHeight = 22;
-        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
+        if (mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE ||
+                mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) {
+            setSplListVisibility(View.VISIBLE);
+        }else {
+            setSplListVisibility(View.GONE);
+        }
+        measuredHeight += ((mSplList.getVisibility() == View.VISIBLE) ? 14 : 0);
+        Log.d(TAG, "measuredHeight=" + measuredHeight);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(measuredHeight,
