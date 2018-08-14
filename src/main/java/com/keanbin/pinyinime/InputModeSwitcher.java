@@ -554,26 +554,16 @@ public class InputModeSwitcher {
         if (language.contains("zh") || language.contains("ZH")) {
             switch (mCurrentInputMode) {
                 case MODE_CHINESE:
-                    mCurrentInputMode = MODE_CHINESE_STROKE;
-                    break;
-                case MODE_CHINESE_STROKE:
                     mCurrentInputMode = MODE_LOWERCASE;
                     break;
                 case MODE_LOWERCASE:
                     mCurrentInputMode = MODE_UPPERCASE;
                     break;
                 case MODE_UPPERCASE:
-//                    mCurrentInputMode = MODE_PT_LOWER;
-//                    break;
-//                case MODE_PT_LOWER:
-//                    mCurrentInputMode = MODE_PT_UPPER;
-//                    break;
-//                case MODE_PT_UPPER:
                     mCurrentInputMode = MODE_NUMBER;
                     break;
                 case MODE_NUMBER:
                     mCurrentInputMode = MODE_CHINESE;
-//                mCurrentInputMode = MODE_LOWERCASE;
                     break;
                 case MODE_SYMBOL:
                     mCurrentInputMode = mLastInputMode;
@@ -583,9 +573,6 @@ public class InputModeSwitcher {
             }
         } else if (language.contains("pt") || language.contains("PT")) {
             switch (mCurrentInputMode) {
-//                case MODE_CHINESE:
-//                    mCurrentInputMode = MODE_LOWERCASE;
-//                    break;
                 case MODE_LOWERCASE:
                     mCurrentInputMode = MODE_UPPERCASE;
                     break;
@@ -614,16 +601,9 @@ public class InputModeSwitcher {
                     mCurrentInputMode = MODE_UPPERCASE;
                     break;
                 case MODE_UPPERCASE:
-//                    mCurrentInputMode = MODE_PT_LOWER;
-//                    break;
-//                case MODE_PT_LOWER:
-//                    mCurrentInputMode = MODE_PT_UPPER;
-//                    break;
-//                case MODE_PT_UPPER:
                     mCurrentInputMode = MODE_NUMBER;
                     break;
                 case MODE_NUMBER:
-//                    mCurrentInputMode = MODE_CHINESE;
                     mCurrentInputMode = MODE_LOWERCASE;
                     break;
                 case MODE_SYMBOL:

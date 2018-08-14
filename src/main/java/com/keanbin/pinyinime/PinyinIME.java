@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import android.app.Activity;
@@ -198,9 +200,9 @@ public class PinyinIME extends InputMethodService {
             Log.d(TAG, "action=" + action);
             if (TextUtils.equals(Intent.ACTION_SCREEN_OFF, action)) {
                 saveIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, mInputModeSwitcher.getCurrentInputMode());
+
             }else if (TextUtils.equals(Intent.ACTION_SCREEN_ON, action)) {
-                int mode = getIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, InputModeSwitcher.MODE_HKB);
-                mInputModeSwitcher.setCurrentInputMode(mode);
+                saveIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, mInputModeSwitcher.MODE_HKB);
             }
         }
     };
@@ -959,6 +961,13 @@ public class PinyinIME extends InputMethodService {
             if (realAction && isScreenOn) {
                 if (mSkbContainer != null)
                     mSkbContainer.handleBack(realAction);
+                //判断熄屏前是否在输入中
+                int mode = getIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, InputModeSwitcher.MODE_HKB);
+                if (mode != InputModeSwitcher.MODE_HKB) {
+                    Log.d(TAG, "KEYCODE_POWER down, mode=" + mode);
+                    return true;
+                }
+
                 Log.d(TAG, "按power键，转为数字按键");
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
                 mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
