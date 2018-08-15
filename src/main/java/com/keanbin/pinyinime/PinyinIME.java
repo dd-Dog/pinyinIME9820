@@ -3130,10 +3130,10 @@ public class PinyinIME extends InputMethodService {
                     case 'm':
                         key = '6';
                         break;
-                    case 't':
+                    case 'p':
                         key = '7';
                         break;
-                    case 'p':
+                    case 'y':
                         key = '8';
                         break;
                     case 'w':
