@@ -3192,10 +3192,10 @@ public class PinyinIME extends InputMethodService {
                     case 'm':
                         mCandidatesList.add("6");
                         break;
-                    case 't':
+                    case 'p':
                         mCandidatesList.add("7");
                         break;
-                    case 'p':
+                    case 't':
                         mCandidatesList.add("8");
                         break;
                     case 'w':
