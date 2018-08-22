@@ -493,6 +493,10 @@ public class PinyinIME extends InputMethodService {
 
         Log.e(TAG, "mCurrnetInputMode=" + mInputModeSwitcher.getCurrentInputMode());
         if (mInputModeSwitcher.isStroke()) {
+            if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 ||
+                    keyCode == KeyEvent.KEYCODE_8 || keyCode == KeyEvent.KEYCODE_9){
+                return false;
+            }
             if (mImeState == ImeState.STATE_IDLE) {
                 return processStateStrokeIdle(keyChar, keyCode, event, realAction);
             } else if (mImeState == ImeState.STATE_INPUT) {
@@ -3183,10 +3187,10 @@ public class PinyinIME extends InputMethodService {
                     case 'm':
                         mCandidatesList.add("6");
                         break;
-                    case 't':
+                    case 'p':
                         mCandidatesList.add("7");
                         break;
-                    case 'p':
+                    case 't':
                         mCandidatesList.add("8");
                         break;
                     case 'w':
