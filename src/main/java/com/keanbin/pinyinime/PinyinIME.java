@@ -551,13 +551,13 @@ public class PinyinIME extends InputMethodService {
                                            KeyEvent event, boolean realAction) {
         Log.d(TAG, "processStateStrokeIdle");
         //五笔-笔画只接受1-5的输入
-        if (keyCode == KeyEvent.KEYCODE_6 ||keyCode == KeyEvent.KEYCODE_7||keyCode == KeyEvent.KEYCODE_9
-                ||keyCode == KeyEvent.KEYCODE_9){
+        if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 || keyCode == KeyEvent.KEYCODE_8
+                || keyCode == KeyEvent.KEYCODE_9) {
             return false;
         }
 
         if (realAction) {
-            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
                 mDecInfo.addStrokeChar(keyCode, false);
                 mDecInfo.setmCandidatesList(keyChar);
                 if (mCandidatesContainer != null)
@@ -602,8 +602,9 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
         //五笔-笔画只接受1-5的输入
-        if (keyCode == KeyEvent.KEYCODE_6 ||keyCode == KeyEvent.KEYCODE_7||keyCode == KeyEvent.KEYCODE_9
-                ||keyCode == KeyEvent.KEYCODE_9){
+        if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 || keyCode == KeyEvent.KEYCODE_8
+                || keyCode == KeyEvent.KEYCODE_9) {
+            Log.d(TAG, "keycode is not 1-5, return");
             return false;
         }
 
@@ -614,7 +615,7 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
+        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9) {
             mDecInfo.addStrokeChar(keyCode, false);
             mDecInfo.setmCandidatesList(keyChar);
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
@@ -635,7 +636,8 @@ public class PinyinIME extends InputMethodService {
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 mCandidatesContainer.activeCurseForward();
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-
+                chooseCandidate(-1);
+                return true;
             }
             return true;
         }
@@ -2017,10 +2019,11 @@ public class PinyinIME extends InputMethodService {
      * @param candId 如果candId小于0 ，就对输入的拼音进行查询。
      */
     private void chooseAndUpdate(int candId) {
-        Log.d(TAG, "chooseAndUpdate()");
+        Log.d(TAG, "chooseAndUpdate(),mInputModeSwitcher.getCurrentInputMode()=" +
+                mInputModeSwitcher.getCurrentInputMode());
 
         // 不是中文输入法状态
-        if (!mInputModeSwitcher.isChineseMode()) {
+        if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_CHINESE) {
             String choice = mDecInfo.getCandidate(candId);
             if (null != choice) {
                 commitResultText(choice);
@@ -2432,6 +2435,7 @@ public class PinyinIME extends InputMethodService {
             Log.d(TAG, "onFinishInputView.");
         }
         resetToIdleState(false);
+        mInputModeSwitcher.setInputModeHKB();
         super.onFinishInputView(finishingInput);
     }
 
