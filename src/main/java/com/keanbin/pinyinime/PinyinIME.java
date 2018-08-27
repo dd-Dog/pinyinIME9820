@@ -201,7 +201,7 @@ public class PinyinIME extends InputMethodService {
             if (TextUtils.equals(Intent.ACTION_SCREEN_OFF, action)) {
                 saveIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, mInputModeSwitcher.getCurrentInputMode());
 
-            }else if (TextUtils.equals(Intent.ACTION_SCREEN_ON, action)) {
+            } else if (TextUtils.equals(Intent.ACTION_SCREEN_ON, action)) {
                 saveIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, mInputModeSwitcher.MODE_HKB);
             }
         }
@@ -550,11 +550,18 @@ public class PinyinIME extends InputMethodService {
     private boolean processStateStrokeIdle(int keyChar, int keyCode,
                                            KeyEvent event, boolean realAction) {
         Log.d(TAG, "processStateStrokeIdle");
+        //五笔-笔画只接受1-5的输入
+        if (keyCode == KeyEvent.KEYCODE_6 ||keyCode == KeyEvent.KEYCODE_7||keyCode == KeyEvent.KEYCODE_9
+                ||keyCode == KeyEvent.KEYCODE_9){
+            return false;
+        }
+
         if (realAction) {
             if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
                 mDecInfo.addStrokeChar(keyCode, false);
                 mDecInfo.setmCandidatesList(keyChar);
-                mCandidatesContainer.setSplListVisibility(View.VISIBLE);
+                if (mCandidatesContainer != null)
+                    mCandidatesContainer.setSplListVisibility(View.VISIBLE);
                 mDecInfo.mPageStart.clear();
                 mDecInfo.mPageStart.add(0);
                 mDecInfo.mCnToPage.clear();
@@ -593,6 +600,11 @@ public class PinyinIME extends InputMethodService {
         Log.d(TAG, "processStateStrokeInput");
         if (!realAction) {
             return true;
+        }
+        //五笔-笔画只接受1-5的输入
+        if (keyCode == KeyEvent.KEYCODE_6 ||keyCode == KeyEvent.KEYCODE_7||keyCode == KeyEvent.KEYCODE_9
+                ||keyCode == KeyEvent.KEYCODE_9){
+            return false;
         }
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {

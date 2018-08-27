@@ -50,15 +50,15 @@ public class ChineseStroke {
             case '5':
                 s = "乛";
                 break;
-            case '6':
-                s = "乀";
-                break;
-            case '7':
-                s = "乚";
-                break;
-            case '9':
-                s = "乙";
-                break;
+//            case '6':
+//                s = "乀";
+//                break;
+//            case '7':
+//                s = "乚";
+//                break;
+//            case '9':
+//                s = "乙";
+//                break;
         }
         return s;
     }

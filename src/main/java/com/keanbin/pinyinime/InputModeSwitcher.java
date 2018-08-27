@@ -554,6 +554,9 @@ public class InputModeSwitcher {
         if (language.contains("zh") || language.contains("ZH")) {
             switch (mCurrentInputMode) {
                 case MODE_CHINESE:
+                    mCurrentInputMode = MODE_CHINESE_STROKE;
+                    break;
+                case MODE_CHINESE_STROKE:
                     mCurrentInputMode = MODE_LOWERCASE;
                     break;
                 case MODE_LOWERCASE:
