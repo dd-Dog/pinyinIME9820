@@ -38,7 +38,9 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.ContentObserver;
+import android.database.Cursor;
 import android.inputmethodservice.InputMethodService;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -1003,6 +1005,17 @@ public class PinyinIME extends InputMethodService {
             inputModeIntent.putExtra(Constants.INPUT_MODE, mInputModeSwitcher.getCurrentInputMode());
             sendBroadcast(inputModeIntent);
 
+
+/*            Cursor cursor = getContentResolver().query(
+                    Uri.parse("content://com.flyscale.ime.provider/inputmode"),
+                    null, null, null, null);
+            if (cursor != null) {
+                cursor.moveToNext();
+                String inputmode = cursor.getString(0);
+                Log.d(TAG, "inputmode=" + inputmode);
+                cursor.close();
+            }*/
+
             resetToIdleState(true);
             setCandidatesViewShown(false);
 
@@ -1452,6 +1465,7 @@ public class PinyinIME extends InputMethodService {
     private void changeToStateChoosing(boolean updateUi) {
         Log.d(TAG, "changeToStateChoosing()");
         mImeState = ImeState.STATE_CHOOSING;
+        mDecInfo.imeState = mImeState;
         if (!updateUi)
             return;
 
@@ -1875,6 +1889,7 @@ public class PinyinIME extends InputMethodService {
     private void changeToStateComposing(boolean updateUi) {
         Log.d(TAG, "changeToStateComposing()");
         mImeState = ImeState.STATE_COMPOSING;
+        mDecInfo.imeState = mImeState;
         if (!updateUi)
             return;
 
@@ -1891,6 +1906,7 @@ public class PinyinIME extends InputMethodService {
     private void changeToStateInput(boolean updateUi) {
         Log.d(TAG, "changeToStateInput()");
         mImeState = ImeState.STATE_INPUT;
+        mDecInfo.imeState = mImeState;
         if (!updateUi)
             return;
 
@@ -1970,6 +1986,7 @@ public class PinyinIME extends InputMethodService {
         if (dismissCandWindow)
             resetCandidateWindow();
         mImeState = nextState;
+        mDecInfo.imeState = mImeState;
     }
 
     /**
@@ -1983,6 +2000,7 @@ public class PinyinIME extends InputMethodService {
             return;
 
         mImeState = ImeState.STATE_IDLE;
+        mDecInfo.imeState = mImeState;
         mDecInfo.reset();
         mDecInfo.clearnCandidateSplArr();
 
@@ -2038,8 +2056,13 @@ public class PinyinIME extends InputMethodService {
                 commitResultText(resultStr);
                 // 设置输入法状态为预报
                 mImeState = ImeState.STATE_PREDICT;
+                mDecInfo.imeState = mImeState;
                 //重置splcursor
                 mCandidatesContainer.resetSplCursor();
+                mCandidatesContainer.setSplListVisibility(View.GONE);//设置拼音不可见
+                mDecInfo.reset();
+                mDecInfo.clearnCandidateSplArr();
+
                 if (null != mSkbContainer && mSkbContainer.isShown()) {
                     mSkbContainer.toggleCandidateMode(false);
                 }
@@ -2420,6 +2443,7 @@ public class PinyinIME extends InputMethodService {
             Log.d(TAG, "onFinishInputView.");
         }
         resetToIdleState(false);
+
         super.onFinishInputView(finishingInput);
     }
 
@@ -2428,6 +2452,7 @@ public class PinyinIME extends InputMethodService {
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "onFinishInput.");
         }
+        mInputModeSwitcher.setInputModeHKB();
         resetToIdleState(false);
         super.onFinishInput();
     }
@@ -2455,6 +2480,7 @@ public class PinyinIME extends InputMethodService {
                 || ImeState.STATE_IDLE == mImeState
                 || ImeState.STATE_PREDICT == mImeState) {
             mImeState = ImeState.STATE_APP_COMPLETION;
+            mDecInfo.imeState = mImeState;
             // 准备从app获取候选词
             mDecInfo.prepareAppCompletions(completions);
             showCandidateWindow(false, -1);
@@ -2901,6 +2927,7 @@ public class PinyinIME extends InputMethodService {
      * @ClassName DecodingInfo
      */
     public class DecodingInfo {
+        public ImeState imeState = ImeState.STATE_IDLE;
         /**
          * Maximum length of the Pinyin string
          * 最大的字符串的长度，其实只有27，因为最后一位为0，是mPyBuf[]的长度
