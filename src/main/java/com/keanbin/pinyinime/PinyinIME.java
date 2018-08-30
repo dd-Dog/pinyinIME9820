@@ -1618,7 +1618,7 @@ public class PinyinIME extends InputMethodService {
                 changeToStateInput(true);
             }
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            changeToStateComposing(true);
+//            changeToStateComposing(true);
 
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
@@ -2089,13 +2089,13 @@ public class PinyinIME extends InputMethodService {
             } else {
                 if (ImeState.STATE_IDLE == mImeState) {
                     if (mDecInfo.getSplStrDecodedLen() == 0) {
-                        changeToStateComposing(true);
+//                        changeToStateComposing(true);
                     } else {
                         changeToStateInput(true);
                     }
                 } else {
                     if (mDecInfo.selectionFinished()) {
-                        changeToStateComposing(true);
+//                        changeToStateComposing(true);
                     }
                 }
                 showCandidateWindow(true, -1);
@@ -2408,7 +2408,7 @@ public class PinyinIME extends InputMethodService {
         Log.e(TAG, "onStartInput");
         if (mEnvironment.needDebug()) {
             Log.d(TAG,
-                    "onStartInput " + " ccontentType: "
+                    "onStartInput " + " contentType: "
                             + String.valueOf(editorInfo.inputType)
                             + " Restarting:" + String.valueOf(restarting));
         }

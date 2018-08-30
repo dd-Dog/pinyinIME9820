@@ -17,6 +17,7 @@
 package com.keanbin.pinyinime;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Build;
@@ -517,6 +518,9 @@ public class InputModeSwitcher {
                 break;
         }
         saveInputModeFlyscale(mCurrentInputMode);
+        Intent inputModeIntent = new Intent(Constants.INPUT_MODE_BROADCAST);
+        inputModeIntent.putExtra(Constants.INPUT_MODE, mCurrentInputMode);
+        mContext.sendBroadcast(inputModeIntent);
         Log.e(TAG, "mCurrentInputMode=" + mCurrentInputMode);
 
     }
