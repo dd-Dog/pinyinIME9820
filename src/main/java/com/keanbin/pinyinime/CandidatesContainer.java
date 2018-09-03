@@ -244,7 +244,7 @@ public class CandidatesContainer extends LinearLayout implements
         //bianjb--显示拼音组合
         if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) {
             showSplListStroke(decInfo.getCandidateStrokeArr());
-        } else if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE){
+        } else if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE) {
             showSplList(decInfo.getCandidateSplArr());
         }
     }
@@ -403,8 +403,9 @@ public class CandidatesContainer extends LinearLayout implements
         measuredHeight = 22;
         if (mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE ||
                 mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) {
-            setSplListVisibility(View.VISIBLE);
-        }else {
+            if (mDecInfo.imeState != PinyinIME.ImeState.STATE_PREDICT)
+                setSplListVisibility(View.VISIBLE);
+        } else {
             setSplListVisibility(View.GONE);
         }
         measuredHeight += ((mSplList.getVisibility() == View.VISIBLE) ? 14 : 0);

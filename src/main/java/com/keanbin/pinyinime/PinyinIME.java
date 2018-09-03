@@ -198,7 +198,7 @@ public class PinyinIME extends InputMethodService {
             Log.d(TAG, "action=" + action);
             if (TextUtils.equals(Intent.ACTION_SCREEN_OFF, action)) {
                 saveIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, mInputModeSwitcher.getCurrentInputMode());
-            }else if (TextUtils.equals(Intent.ACTION_SCREEN_ON, action)) {
+            } else if (TextUtils.equals(Intent.ACTION_SCREEN_ON, action)) {
                 int mode = getIntSp(Constants.INPUT_MODE_BEFORE_SCREEN_OFF, InputModeSwitcher.MODE_HKB);
                 mInputModeSwitcher.setCurrentInputMode(mode);
             }
@@ -494,7 +494,7 @@ public class PinyinIME extends InputMethodService {
         Log.e(TAG, "mCurrnetInputMode=" + mInputModeSwitcher.getCurrentInputMode());
         if (mInputModeSwitcher.isStroke()) {
             if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 ||
-                    keyCode == KeyEvent.KEYCODE_8 || keyCode == KeyEvent.KEYCODE_9){
+                    keyCode == KeyEvent.KEYCODE_8 || keyCode == KeyEvent.KEYCODE_9) {
                 return false;
             }
             if (mImeState == ImeState.STATE_IDLE) {
@@ -552,11 +552,17 @@ public class PinyinIME extends InputMethodService {
     private boolean processStateStrokeIdle(int keyChar, int keyCode,
                                            KeyEvent event, boolean realAction) {
         Log.d(TAG, "processStateStrokeIdle");
+        //五笔-笔画只接受1-5的输入
+        if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 || keyCode == KeyEvent.KEYCODE_8
+                || keyCode == KeyEvent.KEYCODE_9) {
+            return true;
+        }
         if (realAction) {
-            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
                 mDecInfo.addStrokeChar(keyCode, false);
                 mDecInfo.setmCandidatesList(keyChar);
-                mCandidatesContainer.setSplListVisibility(View.VISIBLE);
+                if (mCandidatesContainer != null)
+                    mCandidatesContainer.setSplListVisibility(View.VISIBLE);
                 mDecInfo.mPageStart.clear();
                 mDecInfo.mPageStart.add(0);
                 mDecInfo.mCnToPage.clear();
@@ -596,7 +602,12 @@ public class PinyinIME extends InputMethodService {
         if (!realAction) {
             return true;
         }
-
+        //五笔-笔画只接受1-5的输入
+        if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 || keyCode == KeyEvent.KEYCODE_8
+                || keyCode == KeyEvent.KEYCODE_9) {
+            Log.d(TAG, "keycode is not 1-5, return");
+            return true;
+        }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             resetToIdleState(true);
 //            setCandidatesViewShown(false);
@@ -604,7 +615,7 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
+        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9) {
             mDecInfo.addStrokeChar(keyCode, false);
             mDecInfo.setmCandidatesList(keyChar);
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
@@ -625,7 +636,8 @@ public class PinyinIME extends InputMethodService {
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 mCandidatesContainer.activeCurseForward();
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-
+                chooseCandidate(-1);
+                return true;
             }
             return true;
         }
@@ -1447,6 +1459,7 @@ public class PinyinIME extends InputMethodService {
     private void changeToStateChoosing(boolean updateUi) {
         Log.d(TAG, "changeToStateChoosing()");
         mImeState = ImeState.STATE_CHOOSING;
+        mDecInfo.imeState = mImeState;
         if (!updateUi)
             return;
 
@@ -1599,7 +1612,7 @@ public class PinyinIME extends InputMethodService {
                 changeToStateInput(true);
             }
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            changeToStateComposing(true);
+//            changeToStateComposing(true);
 
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
@@ -1886,6 +1899,7 @@ public class PinyinIME extends InputMethodService {
     private void changeToStateInput(boolean updateUi) {
         Log.d(TAG, "changeToStateInput()");
         mImeState = ImeState.STATE_INPUT;
+        mDecInfo.imeState = mImeState;
         if (!updateUi)
             return;
 
@@ -1965,6 +1979,7 @@ public class PinyinIME extends InputMethodService {
         if (dismissCandWindow)
             resetCandidateWindow();
         mImeState = nextState;
+        mDecInfo.imeState = mImeState;
     }
 
     /**
@@ -1978,6 +1993,7 @@ public class PinyinIME extends InputMethodService {
             return;
 
         mImeState = ImeState.STATE_IDLE;
+        mDecInfo.imeState = mImeState;
         mDecInfo.reset();
         mDecInfo.clearnCandidateSplArr();
 
@@ -2003,7 +2019,7 @@ public class PinyinIME extends InputMethodService {
         Log.d(TAG, "chooseAndUpdate()");
 
         // 不是中文输入法状态
-        if (!mInputModeSwitcher.isChineseMode()) {
+        if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_CHINESE) {
             String choice = mDecInfo.getCandidate(candId);
             if (null != choice) {
                 commitResultText(choice);
@@ -2033,8 +2049,12 @@ public class PinyinIME extends InputMethodService {
                 commitResultText(resultStr);
                 // 设置输入法状态为预报
                 mImeState = ImeState.STATE_PREDICT;
+                mDecInfo.imeState = mImeState;
                 //重置splcursor
                 mCandidatesContainer.resetSplCursor();
+                mCandidatesContainer.setSplListVisibility(View.GONE);//设置拼音不可见
+                mDecInfo.reset();
+                mDecInfo.clearnCandidateSplArr();
                 if (null != mSkbContainer && mSkbContainer.isShown()) {
                     mSkbContainer.toggleCandidateMode(false);
                 }
@@ -2061,13 +2081,13 @@ public class PinyinIME extends InputMethodService {
             } else {
                 if (ImeState.STATE_IDLE == mImeState) {
                     if (mDecInfo.getSplStrDecodedLen() == 0) {
-                        changeToStateComposing(true);
+//                        changeToStateComposing(true);
                     } else {
                         changeToStateInput(true);
                     }
                 } else {
                     if (mDecInfo.selectionFinished()) {
-                        changeToStateComposing(true);
+//                        changeToStateComposing(true);
                     }
                 }
                 showCandidateWindow(true, -1);
@@ -2423,6 +2443,7 @@ public class PinyinIME extends InputMethodService {
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "onFinishInput.");
         }
+        mInputModeSwitcher.setInputModeHKB();
         resetToIdleState(false);
         super.onFinishInput();
     }
@@ -2450,6 +2471,8 @@ public class PinyinIME extends InputMethodService {
                 || ImeState.STATE_IDLE == mImeState
                 || ImeState.STATE_PREDICT == mImeState) {
             mImeState = ImeState.STATE_APP_COMPLETION;
+            mDecInfo.imeState = mImeState;
+
             // 准备从app获取候选词
             mDecInfo.prepareAppCompletions(completions);
             showCandidateWindow(false, -1);
@@ -2896,6 +2919,8 @@ public class PinyinIME extends InputMethodService {
      * @ClassName DecodingInfo
      */
     public class DecodingInfo {
+        public ImeState imeState = ImeState.STATE_IDLE;
+
         /**
          * Maximum length of the Pinyin string
          * 最大的字符串的长度，其实只有27，因为最后一位为0，是mPyBuf[]的长度
@@ -3137,7 +3162,7 @@ public class PinyinIME extends InputMethodService {
                     case 'p':
                         key = '7';
                         break;
-                    case 'y':
+                    case 't':
                         key = '8';
                         break;
                     case 'w':
