@@ -244,7 +244,7 @@ public class CandidatesContainer extends LinearLayout implements
         //bianjb--显示拼音组合
         if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) {
             showSplListStroke(decInfo.getCandidateStrokeArr());
-        } else if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE){
+        } else if (decInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE) {
             showSplList(decInfo.getCandidateSplArr());
         }
     }
@@ -401,10 +401,12 @@ public class CandidatesContainer extends LinearLayout implements
         //动态改变candidatesview的高度--bianjb
 //        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
         measuredHeight = 22;
-        if (mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE ||
-                mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) {
+        Log.d(TAG, "mDecInfo.getImeState()=" + mDecInfo.getImeState());
+        if ((mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE ||
+                mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) &&
+                (mDecInfo.getImeState() == PinyinIME.ImeState.STATE_INPUT || mDecInfo.getImeState() == PinyinIME.ImeState.STATE_CHOOSING)) {
             setSplListVisibility(View.VISIBLE);
-        }else {
+        } else {
             setSplListVisibility(View.GONE);
         }
         measuredHeight += ((mSplList.getVisibility() == View.VISIBLE) ? 14 : 0);

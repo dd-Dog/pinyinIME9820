@@ -553,7 +553,7 @@ public class PinyinIME extends InputMethodService {
         //五笔-笔画只接受1-5的输入
         if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 || keyCode == KeyEvent.KEYCODE_8
                 || keyCode == KeyEvent.KEYCODE_9) {
-            return false;
+            return true;
         }
 
         if (realAction) {
@@ -605,7 +605,7 @@ public class PinyinIME extends InputMethodService {
         if (keyCode == KeyEvent.KEYCODE_6 || keyCode == KeyEvent.KEYCODE_7 || keyCode == KeyEvent.KEYCODE_8
                 || keyCode == KeyEvent.KEYCODE_9) {
             Log.d(TAG, "keycode is not 1-5, return");
-            return false;
+            return true;
         }
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -624,6 +624,7 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mCnToPage.clear();
             mDecInfo.mCnToPage.add(0);
             changeToStateInput(true);
+//            updateComposingText(false);
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
                 keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
@@ -958,6 +959,13 @@ public class PinyinIME extends InputMethodService {
         // Back key is used to dismiss all popup UI in a soft keyboard.
         // 后退键的处理。副软键盘弹出框显示的时候，如果realAction为true，那么就调用dismissPopupSkb（）隐藏副软键盘弹出框，显示主软键盘视图。
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (realAction && mDecInfo.getInputKey().length() > 0 && mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE
+                    && mImeState == ImeState.STATE_INPUT) {
+                Log.d(TAG, "delete one key");
+                handleDeleteChar(keyCode);
+                return true;
+            }
+
             if (isInputViewShown()) {
                 if (mSkbContainer.handleBack(realAction)) {
                     Log.d(TAG, "inputview shown,dismiss");
@@ -1881,6 +1889,102 @@ public class PinyinIME extends InputMethodService {
         return true;
     }
 
+    private void handleDeleteChar(int keyCode) {
+        Log.d(TAG, "handleDeleteChar,keyCode=" + keyCode);
+        if (mDecInfo != null) {
+            mDecInfo.deleteSplChar(false);
+            chooseAndUpdate(-1);
+ /*           int candId = -1;
+
+            Log.d(TAG, "mImeState=" + mImeState);
+            if (ImeState.STATE_PREDICT != mImeState) {
+                Log.d(TAG, "-----1-----");
+                mDecInfo.chooseDecodingCandidate(candId);
+            } else {
+                Log.d(TAG, "-----2-----");
+                mDecInfo.choosePredictChoice(candId);
+            }
+
+            Log.d(TAG, "mDecInfo.getComposingStr()=" + mDecInfo.getComposingStr());
+            if (mDecInfo != null && mDecInfo.getComposingStr().length() > 0) {
+                Log.d(TAG, "-----3-----");
+                String resultStr;
+                // 获取选择了的候选词
+                resultStr = mDecInfo.getComposingStrActivePart();
+                // choiceId >= 0 means user finishes a choice selection.
+                if (candId >= 0 && mDecInfo.canDoPrediction()) {
+                    Log.d(TAG, "-----4-----");
+                    // 发送选择了的候选词给EditText
+                    commitResultText(resultStr);
+                    // 设置输入法状态为预报
+                    mImeState = ImeState.STATE_PREDICT;
+                    //重置splcursor
+                    mCandidatesContainer.resetSplCursor();
+                    if (null != mSkbContainer && mSkbContainer.isShown()) {
+                        Log.d(TAG, "-----5-----");
+                        mSkbContainer.toggleCandidateMode(false);
+                    }
+
+                    // Try to get the prediction list.
+                    // 获取预报的候选词列表
+                    if (Settings.getPrediction()) {
+                        Log.d(TAG, "-----6-----");
+                        InputConnection ic = getCurrentInputConnection();
+                        if (null != ic) {
+                            Log.d(TAG, "-----7-----");
+                            CharSequence cs = ic.getTextBeforeCursor(3, 0);
+                            if (null != cs) {
+                                Log.d(TAG, "-----8-----");
+                                mDecInfo.preparePredicts(cs);
+                            }
+                        }
+                    } else {
+                        Log.d(TAG, "-----9-----");
+                        mDecInfo.resetCandidates();
+                    }
+
+                    if (mDecInfo.mCandidatesList.size() > 0) {
+                        Log.d(TAG, "-----10-----");
+                        showCandidateWindow(false, -1);
+                    } else {
+                        Log.d(TAG, "-----11-----");
+                        resetToIdleState(false);
+                    }
+                } else {
+                    Log.d(TAG, "-----12-----");
+                    if (ImeState.STATE_IDLE == mImeState) {
+                        Log.d(TAG, "-----13-----");
+                        if (mDecInfo.getSplStrDecodedLen() == 0) {
+                            Log.d(TAG, "-----14-----");
+                            changeToStateComposing(true);
+                        } else {
+                            Log.d(TAG, "-----15-----");
+                            changeToStateInput(true);
+                        }
+                    } else {
+                        Log.d(TAG, "-----16-----");
+                        if (mDecInfo.selectionFinished()) {
+                            Log.d(TAG, "-----17-----");
+                            changeToStateComposing(true);
+                        }
+                    }
+                    Log.d(TAG, "-----18-----");
+                    showCandidateWindow(true, -1);
+                }
+            } else {
+                Log.d(TAG, "-----19-----");
+                if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE &&
+                        mDecInfo != null && mDecInfo.getInputKey().length() > 0) {
+                    Log.d(TAG, "-----20-----");
+                    changeToStateInput(true);
+                } else {
+                    Log.d(TAG, "-----21-----");
+                    resetToIdleState(false);
+                }
+            }*/
+        }
+    }
+
     /**
      * 设置输入法状态为 mImeState = ImeState.STATE_COMPOSING;
      *
@@ -2053,6 +2157,8 @@ public class PinyinIME extends InputMethodService {
                 commitResultText(resultStr);
                 // 设置输入法状态为预报
                 mImeState = ImeState.STATE_PREDICT;
+                //清空输入的字符串列表
+                mDecInfo.clearInputKeys();
                 //重置splcursor
                 mCandidatesContainer.resetSplCursor();
                 if (null != mSkbContainer && mSkbContainer.isShown()) {
@@ -2087,13 +2193,18 @@ public class PinyinIME extends InputMethodService {
                     }
                 } else {
                     if (mDecInfo.selectionFinished()) {
-                        changeToStateComposing(true);
+//                        changeToStateComposing(true);
                     }
                 }
                 showCandidateWindow(true, -1);
             }
         } else {
+//            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE &&
+//                    mDecInfo != null && mDecInfo.getInputKey().length() > 0) {
+//                changeToStateInput(true);
+//            } else {
             resetToIdleState(false);
+//            }
         }
     }
 
@@ -2292,7 +2403,7 @@ public class PinyinIME extends InputMethodService {
             //联想,设置为false就不开始联想了，在联想的时候会闪动一下，这应该修改显示的逻辑
             Log.d(TAG, "ImeState=" + mImeState);
             if (mImeState == ImeState.STATE_IDLE) {
-                Log.d(TAG, "ImeState.STATE_CHOOSING");
+                Log.d(TAG, "ImeState.STATE_IDLE");
                 setCandidatesViewShown(false);
             } else {
                 setCandidatesViewShown(true);
@@ -3048,6 +3159,10 @@ public class PinyinIME extends InputMethodService {
             mSurfaceDecodedLen = 0;
         }
 
+        public ImeState getImeState() {
+            return mImeState;
+        }
+
         /**
          * 重置
          */
@@ -3101,6 +3216,11 @@ public class PinyinIME extends InputMethodService {
         public void addInputKey(char c) {
             Log.d(TAG, "addInputKey,c=" + c);
             inputKeyChars.add(c);
+        }
+
+        public void deleteKey() {
+            Log.d(TAG, "deleteKey");
+            inputKeyChars.remove(inputKeyChars.size() - 1);
         }
 
         public ArrayList<String> getCandidateStrokeArr() {
@@ -3290,6 +3410,25 @@ public class PinyinIME extends InputMethodService {
             mSurface.insert(mCursorPos, ch);
             Log.e(TAG, "DecodeInfo::addSplChar()" + "mSurface=" + mSurface.toString());
             mCursorPos++;
+        }
+
+        public void deleteSplChar(boolean reset) {
+            Log.d(TAG, "deleteSplChar");
+            if (reset) {
+                mSurface.delete(0, mSurface.length());
+                mSurfaceDecodedLen = 0;
+                mCursorPos = 0;
+                try {
+                    mIPinyinDecoderService.imResetSearch();
+                } catch (RemoteException e) {
+                }
+            }
+            mDecInfo.deleteKey();
+            mDecInfo.updateCandidateSplArr();
+            if (mSurface.length() > 0) {
+                mSurface.delete(mSurface.length() - 1, mSurface.length());
+                mCursorPos--;
+            }
         }
 
         /**
@@ -3557,6 +3696,7 @@ public class PinyinIME extends InputMethodService {
         int index = 0;
 
         private void chooseDecodingCandidate(int candId) {
+            Log.d(TAG, "chooseDecodingCandidate,canId=" + candId);
             if (mImeState != ImeState.STATE_PREDICT) {
                 resetCandidates();
                 int totalChoicesNum = 0;
@@ -3735,6 +3875,7 @@ public class PinyinIME extends InputMethodService {
          * @param choiceId
          */
         private void choosePredictChoice(int choiceId) {
+            Log.d(TAG, "choosePredictChoice,choiceId=" + choiceId);
             if (ImeState.STATE_PREDICT != mImeState || choiceId < 0
                     || choiceId >= mTotalChoicesNum) {
                 return;
