@@ -558,6 +558,16 @@ public class PinyinIME extends InputMethodService {
 
         if (realAction) {
             if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                String inputKey = mDecInfo.getInputKey();
+                Log.d(TAG, "inputKey=" + inputKey);
+                char c = (char) keyChar;
+                String inputKeysPre = inputKey + mDecInfo.char2code(c);
+                Log.d(TAG, "inputKeysPre=" + inputKeysPre);
+                //查询是否有能够匹配到数据库
+                mDecInfo.mStrokeQueryResult = mStrokeDAO.query(inputKeysPre, 20);
+                if (mDecInfo.mStrokeQueryResult == null ||mDecInfo.mStrokeQueryResult.size() == 0) {
+                    return true;
+                }
                 mDecInfo.addStrokeChar(keyCode, false);
                 mDecInfo.setmCandidatesList(keyChar);
                 if (mCandidatesContainer != null)
@@ -615,7 +625,19 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9) {
+        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_6) {
+            String inputKey = mDecInfo.getInputKey();
+            Log.d(TAG, "inputKey=" + inputKey);
+            char c = (char) keyChar;
+            String inputKeysPre = inputKey + mDecInfo.char2code(c);
+            Log.d(TAG, "inputKeysPre=" + inputKeysPre);
+
+            //查询是否有能够匹配到数据库
+            mDecInfo.mStrokeQueryResult = mStrokeDAO.query(inputKeysPre, 20);
+            if (mDecInfo.mStrokeQueryResult == null ||mDecInfo.mStrokeQueryResult.size() == 0) {
+                return true;
+            }
+
             mDecInfo.addStrokeChar(keyCode, false);
             mDecInfo.setmCandidatesList(keyChar);
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
@@ -3028,6 +3050,7 @@ public class PinyinIME extends InputMethodService {
      * @ClassName DecodingInfo
      */
     public class DecodingInfo {
+        private ArrayList<String> mStrokeQueryResult;
         /**
          * Maximum length of the Pinyin string
          * 最大的字符串的长度，其实只有27，因为最后一位为0，是mPyBuf[]的长度
@@ -3295,8 +3318,8 @@ public class PinyinIME extends InputMethodService {
                     mCandidatesList.add(chars[i] + "");
                 }
             } else if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE_STROKE) {
-                ArrayList<String> query = mStrokeDAO.query(getInputKey(), 20);
-                Log.d(TAG, "query=" + query);
+                ArrayList<String> query = mStrokeQueryResult;
+                Log.d(TAG, "mStrokeQueryResult=" + query);
                 if (mCandidatesList != null && query != null) {
                     mCandidatesList.clear();
                     mCandidatesList.addAll(query);
@@ -3908,7 +3931,7 @@ public class PinyinIME extends InputMethodService {
         public String getCandidate(int candId) {
             // Only loaded items can be gotten, so we use mCandidatesList.size()
             // instead mTotalChoiceNum.
-            if (candId < 0 || candId > mCandidatesList.size()) {
+            if (candId < 0 || candId >= mCandidatesList.size()) {
                 return null;
             }
             return mCandidatesList.get(candId);
