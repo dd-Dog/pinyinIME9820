@@ -1718,6 +1718,14 @@ public class PinyinIME extends InputMethodService {
             requestHideSelf(0);
             return true;
         } else {
+            //判断输入拼音是否正确，如果不正确就不作处理
+            String inputKeys = mDecInfo.getInputKey() + mDecInfo.char2code((char) keyChar);
+            Log.e(TAG, "inputKeys=" + inputKeys);
+            ArrayList<char[]> splStrs = T92Pinyin.getSplStrs(inputKeys);
+            if (splStrs == null || splStrs.size() == 0) {
+                Log.e(TAG, "splStrs=" + splStrs);
+                return true;
+            }
             // 添加输入的拼音，然后进行词库查询，或者删除输入的拼音指定的字符或字符串，然后进行词库查询。
             return processSurfaceChange(keyChar, keyCode);
         }
@@ -1903,6 +1911,7 @@ public class PinyinIME extends InputMethodService {
                 || (((keyChar >= '0' && keyChar <= '9') || keyChar == ' ') && ImeState
                 .STATE_COMPOSING == mImeState)) {
             mDecInfo.addSplChar((char) keyChar, false);
+            Log.d(TAG, "processSurfaceChange::mDecInfo.getComposingStr()=" + mDecInfo.getComposingStr());
             chooseAndUpdate(-1);
         } else if (keyCode == KeyEvent.KEYCODE_DEL) {
             mDecInfo.prepareDeleteBeforeCursor();
@@ -2190,6 +2199,7 @@ public class PinyinIME extends InputMethodService {
                 // Try to get the prediction list.
                 // 获取预报的候选词列表
                 if (Settings.getPrediction()) {
+                    Log.d(TAG, "prediction=true");
                     InputConnection ic = getCurrentInputConnection();
                     if (null != ic) {
                         CharSequence cs = ic.getTextBeforeCursor(3, 0);
@@ -2204,6 +2214,7 @@ public class PinyinIME extends InputMethodService {
                 if (mDecInfo.mCandidatesList.size() > 0) {
                     showCandidateWindow(false, -1);
                 } else {
+                    Log.d(TAG, "mCandidatesList size <= 0");
                     resetToIdleState(false);
                 }
             } else {
@@ -2221,12 +2232,8 @@ public class PinyinIME extends InputMethodService {
                 showCandidateWindow(true, -1);
             }
         } else {
-//            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE &&
-//                    mDecInfo != null && mDecInfo.getInputKey().length() > 0) {
-//                changeToStateInput(true);
-//            } else {
+            Log.d(TAG, "composing null");
             resetToIdleState(false);
-//            }
         }
     }
 
@@ -3719,7 +3726,7 @@ public class PinyinIME extends InputMethodService {
         int index = 0;
 
         private void chooseDecodingCandidate(int candId) {
-            Log.d(TAG, "chooseDecodingCandidate,canId=" + candId);
+            Log.d(TAG, "chooseDecodingCandidate,canId=" + candId + ",mImeState=" + mImeState);
             if (mImeState != ImeState.STATE_PREDICT) {
                 resetCandidates();
                 int totalChoicesNum = 0;
@@ -3739,7 +3746,11 @@ public class PinyinIME extends InputMethodService {
                                 onCreateCandidatesView();
                             }
                             if (candidateSplArr == null || candidateSplArr.size() == 0) {
-                                //如果没有查询到则返回
+                                //如果是选择拼音字符串状态，没有查询到则返回
+                                if (mImeState == ImeState.STATE_CHOOSING){
+                                    return;
+                                }
+                                //如果不是，则重置后再返回
                                 reset();
                                 return;
                             }
