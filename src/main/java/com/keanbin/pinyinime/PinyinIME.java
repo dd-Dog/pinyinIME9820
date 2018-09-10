@@ -19,15 +19,9 @@ package com.keanbin.pinyinime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -37,7 +31,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.database.ContentObserver;
 import android.inputmethodservice.InputMethodService;
 import android.os.Handler;
 import android.os.IBinder;
@@ -58,15 +51,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputBinding;
 import android.view.inputmethod.InputConnection;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.Toast;
 
 import com.keanbin.pinyinime.constant.Constants;
 import com.keanbin.pinyinime.db.StrokeDAO;
-import com.keanbin.pinyinime.service.LoadService;
 import com.keanbin.pinyinime.utils.ChineseStroke;
 import com.keanbin.pinyinime.utils.MyToast;
 import com.keanbin.pinyinime.utils.PTAlpha;
@@ -1475,7 +1465,7 @@ public class PinyinIME extends InputMethodService {
 //            mCandidatesContainer.clearSplList();
 //            mDecInfo.clearSurface();
 //            mDecInfo.clearInputKeys();
-//            mDecInfo.clearnCandidateSplArr();
+//            mDecInfo.clearCandidateSplArr();
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (!realAction)
@@ -1694,7 +1684,7 @@ public class PinyinIME extends InputMethodService {
             mCandidatesContainer.clearSplList();
             mDecInfo.clearSurface();
             mDecInfo.clearInputKeys();
-            mDecInfo.clearnCandidateSplArr();
+            mDecInfo.clearCandidateSplArr();
             resetToIdleState(false);
         } else if (keyCode == KeyEvent.KEYCODE_ENTER
                 && !mInputModeSwitcher.isEnterNoramlState()) {
@@ -2133,7 +2123,7 @@ public class PinyinIME extends InputMethodService {
 
         mImeState = ImeState.STATE_IDLE;
         mDecInfo.reset();
-        mDecInfo.clearnCandidateSplArr();
+        mDecInfo.clearCandidateSplArr();
 
         // 重置显示输入拼音字符串的 View
         if (null != mComposingView)
@@ -2142,6 +2132,8 @@ public class PinyinIME extends InputMethodService {
             commitResultText("");
 
         resetCandidateWindow();
+        //重置splcursor
+        mCandidatesContainer.resetSplCursor();
     }
 
     private void chooseStroke(int cndId) {
@@ -3405,7 +3397,7 @@ public class PinyinIME extends InputMethodService {
         /**
          * bianjb--清除所有拼音组合
          */
-        public void clearnCandidateSplArr() {
+        public void clearCandidateSplArr() {
             if (candidateSplArr != null)
                 candidateSplArr.clear();
         }
