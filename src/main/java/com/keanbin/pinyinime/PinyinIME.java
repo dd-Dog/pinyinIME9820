@@ -555,7 +555,7 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "inputKeysPre=" + inputKeysPre);
                 //查询是否有能够匹配到数据库
                 mDecInfo.mStrokeQueryResult = mStrokeDAO.query(inputKeysPre, 20);
-                if (mDecInfo.mStrokeQueryResult == null ||mDecInfo.mStrokeQueryResult.size() == 0) {
+                if (mDecInfo.mStrokeQueryResult == null || mDecInfo.mStrokeQueryResult.size() == 0) {
                     return true;
                 }
                 mDecInfo.addStrokeChar(keyCode, false);
@@ -624,7 +624,7 @@ public class PinyinIME extends InputMethodService {
 
             //查询是否有能够匹配到数据库
             mDecInfo.mStrokeQueryResult = mStrokeDAO.query(inputKeysPre, 20);
-            if (mDecInfo.mStrokeQueryResult == null ||mDecInfo.mStrokeQueryResult.size() == 0) {
+            if (mDecInfo.mStrokeQueryResult == null || mDecInfo.mStrokeQueryResult.size() == 0) {
                 return true;
             }
 
@@ -642,13 +642,14 @@ public class PinyinIME extends InputMethodService {
                 keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
                 keyCode == KeyEvent.KEYCODE_DPAD_UP ||
                 keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                keyCode == KeyEvent.KEYCODE_MENU ||
                 keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 // 高亮位置向上一个候选词移动或者移动到上一页的最后一个候选词的位置。
                 mCandidatesContainer.activeCurseBackward();
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                 mCandidatesContainer.activeCurseForward();
-            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_MENU) {
                 chooseCandidate(-1);
                 return true;
             }
@@ -1416,7 +1417,7 @@ public class PinyinIME extends InputMethodService {
 //                    changeToStateComposing(true);
 //                    updateComposingText(true);
                 }
-            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            } else {
                 // 到下一页候选词
                 mCandidatesContainer.pageForward(false, true);
             }
@@ -1914,7 +1915,11 @@ public class PinyinIME extends InputMethodService {
         Log.d(TAG, "handleDeleteChar,keyCode=" + keyCode);
         if (mDecInfo != null) {
             mDecInfo.deleteSplChar(false);
-            chooseAndUpdate(-1);
+            if (TextUtils.isEmpty(mDecInfo.getInputKey())) {
+                resetToIdleState(false);
+            } else {
+                chooseAndUpdate(-1);
+            }
  /*           int candId = -1;
 
             Log.d(TAG, "mImeState=" + mImeState);
@@ -3739,7 +3744,7 @@ public class PinyinIME extends InputMethodService {
                             }
                             if (candidateSplArr == null || candidateSplArr.size() == 0) {
                                 //如果是选择拼音字符串状态，没有查询到则返回
-                                if (mImeState == ImeState.STATE_CHOOSING){
+                                if (mImeState == ImeState.STATE_CHOOSING) {
                                     return;
                                 }
                                 //如果不是，则重置后再返回
