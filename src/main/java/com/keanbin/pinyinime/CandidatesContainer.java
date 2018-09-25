@@ -334,7 +334,7 @@ public class CandidatesContainer extends LinearLayout implements
             view.setText(chars2Str(candidateSplArr.get(i)));
             view.setTextSize(16);
             view.setTextColor(Color.BLACK);
-            view.setPadding(1, 0, 4, 0);
+            view.setPadding(1, 0, 3, 0);
             mSplList.addView(view);
         }
     }
