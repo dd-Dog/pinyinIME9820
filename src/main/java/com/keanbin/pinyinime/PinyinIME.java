@@ -2408,6 +2408,7 @@ public class PinyinIME extends InputMethodService {
      * @param showComposingView 是否显示输入的拼音View
      */
     private void showCandidateWindow(boolean showComposingView, int keycode) {
+        Log.d(TAG, "showCandidateWindow");
         if (mEnvironment.needDebug()) {
             Log.d(TAG, "Candidates window is shown. Parent = "
                     + mCandidatesContainer);
@@ -3951,6 +3952,7 @@ public class PinyinIME extends InputMethodService {
          * （）；2、mIPinyinDecoderService.imGetPredictList；3、从mAppCompletions[]取。
          */
         private void getCandiagtesForCache() {
+            Log.d(TAG, "getCandiagtesForCache");
             int fetchStart = mCandidatesList.size();
             int fetchSize = mTotalChoicesNum - fetchStart;
             if (fetchSize > MAX_PAGE_SIZE_DISPLAY) {
@@ -3981,8 +3983,8 @@ public class PinyinIME extends InputMethodService {
                     }
                 }
                 Log.e(TAG, "mCandidatesList=" + mCandidatesList);
-                Log.e(TAG, "newList=" + newList);
                 mCandidatesList.addAll(newList);
+                Log.e(TAG, "new mCandidatesList=" + newList);
             } catch (RemoteException e) {
                 Log.w(TAG, "PinyinDecoderService died", e);
             }
@@ -4014,6 +4016,7 @@ public class PinyinIME extends InputMethodService {
          * @return
          */
         public boolean preparePage(int pageNo) {
+            Log.d(TAG, "preparePage, pageNo=" + pageNo);
             // If the page number is less than 0, return false
             if (pageNo < 0)
                 return false;

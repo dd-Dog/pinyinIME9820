@@ -285,6 +285,7 @@ public class CandidateView extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        Log.d(TAG, "onMeasure");
         int mOldWidth = getMeasuredWidth();
         int mOldHeight = getMeasuredHeight();
 
