@@ -346,6 +346,10 @@ public class CandidatesContainer extends LinearLayout implements
      */
     public void setSplListVisibility(int visibility) {
         Log.e(TAG, "setSplListVisibility=" + visibility);
+        if (visibility == View.GONE){
+            visibility = View.INVISIBLE;
+        }
+        Log.d(TAG, "visibility=" + visibility);
         mSplList.setVisibility(visibility);
     }
 
@@ -400,7 +404,7 @@ public class CandidatesContainer extends LinearLayout implements
         measuredHeight += env.getHeightForCandidates();
         //动态改变candidatesview的高度--bianjb
 //        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
-        measuredHeight = 22;
+//        measuredHeight = 22;
         if (mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE ||
                 mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) {
             if (mDecInfo.imeState != PinyinIME.ImeState.STATE_PREDICT)
@@ -408,7 +412,8 @@ public class CandidatesContainer extends LinearLayout implements
         } else {
             setSplListVisibility(View.GONE);
         }
-        measuredHeight += ((mSplList.getVisibility() == View.VISIBLE) ? 14 : 0);
+//        measuredHeight += ((mSplList.getVisibility() == View.VISIBLE) ? 14 : 0);
+        measuredHeight = 36;
         Log.d(TAG, "measuredHeight=" + measuredHeight);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);
