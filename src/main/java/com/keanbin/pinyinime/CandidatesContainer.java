@@ -405,6 +405,7 @@ public class CandidatesContainer extends LinearLayout implements
 //        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
 //        measuredHeight = 22;
         Log.d(TAG, "mDecInfo.getImeState()=" + mDecInfo.getImeState());
+        Log.d(TAG, "mCurrentInputMode=" + mDecInfo.mCurrentInputMode);
         if ((mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE ||
                 mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) &&
                 (mDecInfo.getImeState() == PinyinIME.ImeState.STATE_INPUT || mDecInfo.getImeState() == PinyinIME.ImeState.STATE_CHOOSING)) {

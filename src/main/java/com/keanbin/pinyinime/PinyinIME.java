@@ -851,6 +851,9 @@ public class PinyinIME extends InputMethodService {
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             resetToIdleState(true);
+            String language = getResources().getConfiguration().locale.getLanguage();
+            mInputModeSwitcher.toggleNextState(language);
+            mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
             return true;
         }
 
