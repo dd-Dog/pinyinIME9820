@@ -504,6 +504,10 @@ public class InputModeSwitcher {
             case EditorInfo.TYPE_CLASS_PHONE:
                 mCurrentInputMode = MODE_HKB;
                 break;
+            case EditorInfo.TYPE_TEXT_VARIATION_PASSWORD:
+            case EditorInfo.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD:
+                mCurrentInputMode = MODE_LOWERCASE;
+                    break;
             case EditorInfo.TYPE_CLASS_TEXT:
                 String locale = Locale.getDefault().getLanguage();
                 Log.d(TAG, "locale=" + locale);

@@ -422,9 +422,7 @@ public class PinyinIME extends InputMethodService {
          */
         // 功能键处理
         if (processFunctionKeys(keyCode, realAction)) {
-            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
-                return false;
-            }
+
             return true;
         }
 
@@ -975,6 +973,18 @@ public class PinyinIME extends InputMethodService {
         // Back key is used to dismiss all popup UI in a soft keyboard.
         // 后退键的处理。副软键盘弹出框显示的时候，如果realAction为true，那么就调用dismissPopupSkb（）隐藏副软键盘弹出框，显示主软键盘视图。
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB && realAction) {
+                InputConnection ic = getCurrentInputConnection();
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                CharSequence textAfterCursor = ic.getTextAfterCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                Log.d(TAG, "在HKB模式下，先执行删除操作");
+                if (TextUtils.isEmpty(textBeforeCursor) && TextUtils.isEmpty(textAfterCursor)) {
+                    return false;
+                }
+                boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
+                return true;
+            }
             if (realAction && mDecInfo.getInputKey().length() > 0 && mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_CHINESE
                     && mImeState == ImeState.STATE_INPUT) {
                 Log.d(TAG, "delete one key");
