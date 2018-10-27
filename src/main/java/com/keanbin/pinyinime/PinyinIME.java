@@ -1027,13 +1027,13 @@ public class PinyinIME extends InputMethodService {
         //bianjb--添加中英文切换，'#'切换
         if (keyCode == KeyEvent.KEYCODE_POUND) {
             if (!realAction) {
-                return true;
+                return false;
             }
 
 
             //如果是输入类型是PHONE，也不进行切换
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
-                return true;
+                return false;
             }
             mDecInfo.inputKeyChars.clear();//切换输入状态时要清空输入记录
             mDecInfo.mSurface.delete(0, mDecInfo.mSurface.length());
@@ -1057,10 +1057,10 @@ public class PinyinIME extends InputMethodService {
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_STAR) {
             if (!realAction) {
-                return true;
+                return false;
             }
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
-                return true;
+                return false;
             }
             mDecInfo.mSurface.delete(0, mDecInfo.mSurface.length());
             mDecInfo.mSurfaceDecodedLen = 0;
