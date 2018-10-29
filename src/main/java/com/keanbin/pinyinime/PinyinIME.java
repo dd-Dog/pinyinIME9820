@@ -325,6 +325,16 @@ public class PinyinIME extends InputMethodService {
                 }
             }
         }
+        if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                InputConnection inputConnection = getCurrentInputConnection();
+                CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
+                if (!TextUtils.isEmpty(textBeforeCursor)) {
+                    inputConnection.deleteSurroundingText(1, 0);
+                    return true;
+                }
+            }
+        }
 //        if (event.getRepeatCount() == 25) {
 //            if (keyCode == KeyEvent.KEYCODE_BACK) {
 //                InputConnection inputConnection = getCurrentInputConnection();
@@ -358,6 +368,9 @@ public class PinyinIME extends InputMethodService {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
+        if(mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB){
+            return false;
+        }
         if (processKey(event, true))
             return true;
         boolean superResult = super.onKeyUp(keyCode, event);
@@ -1027,9 +1040,11 @@ public class PinyinIME extends InputMethodService {
         //bianjb--添加中英文切换，'#'切换
         if (keyCode == KeyEvent.KEYCODE_POUND) {
             if (!realAction) {
+                if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_HKB) {
+                    return true;
+                }
                 return false;
             }
-
 
             //如果是输入类型是PHONE，也不进行切换
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
@@ -1057,6 +1072,9 @@ public class PinyinIME extends InputMethodService {
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_STAR) {
             if (!realAction) {
+                if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_HKB) {
+                    return true;
+                }
                 return false;
             }
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
