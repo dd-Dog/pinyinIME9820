@@ -502,6 +502,7 @@ public class InputModeSwitcher {
         switch (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS) {
             case EditorInfo.TYPE_CLASS_NUMBER:
             case EditorInfo.TYPE_CLASS_PHONE:
+            case EditorInfo.TYPE_NUMBER_VARIATION_NORMAL:
                 mCurrentInputMode = MODE_HKB;
                 break;
             case EditorInfo.TYPE_TEXT_VARIATION_PASSWORD:
