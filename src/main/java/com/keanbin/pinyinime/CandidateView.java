@@ -325,6 +325,7 @@ public class CandidateView extends View {
      * @param decInfo
      */
     public void setDecodingInfo(DecodingInfo decInfo) {
+        Log.d(TAG, "setDecodingInfo");
         if (null == decInfo)
             return;
         mDecInfo = decInfo;
@@ -390,6 +391,7 @@ public class CandidateView extends View {
      */
     public void showPage(int pageNo, int activeCandInPage,
                          boolean enableActiveHighlight) {
+        Log.d(TAG, "showPage");
         if (null == mDecInfo)
             return;
         mPageNo = pageNo;
@@ -426,6 +428,7 @@ public class CandidateView extends View {
      * @return
      */
     public boolean activeCursorForward() {
+        Log.d(TAG, "activeCursorForward");
         if (!mDecInfo.pageReady(mPageNo))
             return false;
         int pageSize = mDecInfo.mPageStart.get(mPageNo + 1)
@@ -443,6 +446,7 @@ public class CandidateView extends View {
      * @return
      */
     public boolean activeCurseBackward() {
+        Log.d(TAG, "activeCurseBackward");
         if (mActiveCandInPage > 0) {
             showPage(mPageNo, mActiveCandInPage - 1, true);
             return true;
@@ -454,6 +458,7 @@ public class CandidateView extends View {
      * 计算候选词区域的宽度和高度、候选词文本大小、附注文本大小、省略号宽度。当尺寸发生改变时调用。在onMeasure（）中调用。
      */
     private void onSizeChanged() {
+        Log.d(TAG, "onSizeChanged");
         // 计算候选词区域的宽度和高度
         mContentWidth = getMeasuredWidth() - getPaddingLeft()
                 - getPaddingRight();
@@ -516,6 +521,7 @@ public class CandidateView extends View {
      * @return
      */
     private boolean calculatePage(int pageNo) {
+        Log.d(TAG, "calculatePage");
         if (pageNo == mPageNoCalculated)
             return true;
 

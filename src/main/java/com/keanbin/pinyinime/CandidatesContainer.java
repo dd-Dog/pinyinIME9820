@@ -18,6 +18,7 @@ package com.keanbin.pinyinime;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -178,6 +179,7 @@ public class CandidatesContainer extends LinearLayout implements
      */
     private int mCurrentPage = -1;
     private LinearLayout mSplList;
+    private ArrayList<char[]> mCandidateSplArr;
 
     public CandidatesContainer(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -289,6 +291,7 @@ public class CandidatesContainer extends LinearLayout implements
 
     public void resetSplCursor() {
         mCurrSplCursorPos = 0;
+        mStartIndex = 0;
     }
 
     /**
@@ -301,17 +304,33 @@ public class CandidatesContainer extends LinearLayout implements
         } else {
             mCurrSplCursorPos--;
         }
+        if (mCurrSplCursorPos < mStartIndex) {
+            mStartIndex = mCurrSplCursorPos;
+        }
     }
 
     /**
      * 候选字符串光标向前移
      * bianjb
      */
+    private int mStartIndex = 0;//开始显示的拼音下标
+
     public void forwardSplCursor() {
         Log.e(TAG, "forwardSplCursor() mCurrSplCursorPos=" + mCurrSplCursorPos);
         if (mCurrSplCursorPos >= mSplList.getChildCount() - 1) {
         } else {
             mCurrSplCursorPos++;
+        }
+        int width = 0;
+        for (int i = mStartIndex; i < mCurrSplCursorPos; i++) {
+            View child = mSplList.getChildAt(i);
+            if (child != null) {
+                width += child.getWidth();
+                Log.d(TAG, "child.width=" + child.getWidth() + ",width=" + width);
+            }
+        }
+        if (width > 120) {
+            mStartIndex++;
         }
     }
 
@@ -324,6 +343,7 @@ public class CandidatesContainer extends LinearLayout implements
     private void showSplList(ArrayList<char[]> candidateSplArr) {
         Log.e(TAG, "showSplList");
         mSplList.removeAllViews();
+        mCandidateSplArr = candidateSplArr;
 //        if (candidateSplArr == null || candidateSplArr.size() ==0) {
 //            setSplListVisibility(View.GONE);
 //            return;
@@ -335,6 +355,7 @@ public class CandidatesContainer extends LinearLayout implements
             view.setTextSize(16);
             view.setTextColor(Color.BLACK);
             view.setPadding(1, 0, 3, 0);
+            view.setVisibility(i < mStartIndex ? View.GONE : View.VISIBLE);
             mSplList.addView(view);
         }
     }
@@ -346,7 +367,7 @@ public class CandidatesContainer extends LinearLayout implements
      */
     public void setSplListVisibility(int visibility) {
         Log.e(TAG, "setSplListVisibility=" + visibility);
-        if (visibility == View.GONE){
+        if (visibility == View.GONE) {
             visibility = View.INVISIBLE;
         }
         mSplList.setVisibility(visibility);
@@ -358,6 +379,7 @@ public class CandidatesContainer extends LinearLayout implements
     public void clearSplList() {
         mSplList.removeAllViews();
         mCurrSplCursorPos = 0;
+        mStartIndex = 0;
     }
 
     /**
@@ -404,8 +426,8 @@ public class CandidatesContainer extends LinearLayout implements
         //动态改变candidatesview的高度--bianjb
 //        measuredHeight += ((mSplList.getVisibility()==View.VISIBLE)?14: 0);
 //        measuredHeight = 22;
-        Log.d(TAG, "mDecInfo.getImeState()=" + mDecInfo.getImeState());
-        Log.d(TAG, "mCurrentInputMode=" + mDecInfo.mCurrentInputMode);
+        Log.d(TAG, "mDecInfo.getImeState()=" + (mDecInfo != null ? mDecInfo.getImeState() : "null"));
+        Log.d(TAG, "mCurrentInputMode=" + (mDecInfo != null ? mDecInfo.mCurrentInputMode : "null"));
         if ((mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE ||
                 mDecInfo.mCurrentInputMode == InputModeSwitcher.MODE_CHINESE_STROKE) &&
                 (mDecInfo.getImeState() == PinyinIME.ImeState.STATE_INPUT || mDecInfo.getImeState() == PinyinIME.ImeState.STATE_CHOOSING)) {
