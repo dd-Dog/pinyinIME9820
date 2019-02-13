@@ -22,7 +22,7 @@ public class MyReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (TextUtils.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
             Intent loadIntent = new Intent(context, LoadService.class);
-            context.startService(loadIntent);
+//            context.startService(loadIntent);
         } else {
             // MainActivity.onrecvintend(intent);
             String tinfo = intent.getStringExtra("idatachina.SCAN_DATA");

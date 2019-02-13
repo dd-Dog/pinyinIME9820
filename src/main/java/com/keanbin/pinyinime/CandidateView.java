@@ -51,7 +51,7 @@ public class CandidateView extends View {
     /**
      * The minimum width to show a item. 一个item最小的宽度
      */
-    private static final float MIN_ITEM_WIDTH = 24;
+    private static final float MIN_ITEM_WIDTH = 48;
 
     /**
      * Suspension points used to display long items. 省略号
@@ -498,14 +498,12 @@ public class CandidateView extends View {
             mFmiFootnote = mFootnotePaint.getFontMetricsInt();
         }
         textSize--;
-        mFootnotePaint.setTextSize(textSize);
+        mFootnotePaint.setTextSize(0);
         mFmiFootnote = mFootnotePaint.getFontMetricsInt();
 
         // When the size is changed, the first page will be displayed.
         mPageNo = 0;
         mActiveCandInPage = 0;
-
-
     }
 
     /**
@@ -676,6 +674,7 @@ public class CandidateView extends View {
                 mCandidatesPaint.setColor(mNormalCandidateColor);
             }
             // 画候选词
+            Log.d(TAG, "onDraw,xPos=" + xPos + ",yPos=" + yPos);
             canvas.drawText(cand, xPos + centerOffset, yPos, mCandidatesPaint);
 
             // Candidate and right margin

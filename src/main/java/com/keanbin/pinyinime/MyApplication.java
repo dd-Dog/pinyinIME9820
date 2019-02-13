@@ -15,6 +15,6 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Intent loadIntent = new Intent(this, LoadService.class);
-        startService(loadIntent);
+//        startService(loadIntent);
     }
 }

@@ -437,7 +437,7 @@ public class CandidatesContainer extends LinearLayout implements
         }
 
 //        measuredHeight += ((mSplList.getVisibility() == View.VISIBLE) ? 14 : 0);
-        measuredHeight = 36;
+        measuredHeight = 64;
         Log.d(TAG, "measuredHeight=" + measuredHeight);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth,
                 MeasureSpec.EXACTLY);
