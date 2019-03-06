@@ -12,6 +12,7 @@ public class PTAlpha {
     public static HashMap<Character, char[]> mapsUpper = new HashMap<>();
 
     static {
+        mapsLower.put('1', new char[]{'1'});
         mapsLower.put('2', new char[]{'a', 'b', 'c', 'ã', 'á', 'â', 'à', 'c', 'ç', '2'});
         mapsLower.put('3', new char[]{'d', 'e', 'f', 'é', 'ê', '3'});
         mapsLower.put('4', new char[]{'g', 'h', 'i', 'í', '4'});
@@ -21,6 +22,7 @@ public class PTAlpha {
         mapsLower.put('8', new char[]{'t', 'u', 'v', 'ú', 'ü', '8'});
         mapsLower.put('9', new char[]{'w', 'x', 'y', 'z', '9'});
 
+        mapsUpper.put('1', new char[]{'1'});
         mapsUpper.put('2', new char[]{'A', 'B', 'C', 'Ã', 'Á', 'Â', 'À', 'C', 'Ç', '2'});
         mapsUpper.put('3', new char[]{'D', 'E', 'F', 'É', 'Ê', '3'});
         mapsUpper.put('4', new char[]{'G', 'H', 'I', 'Í', '4'});

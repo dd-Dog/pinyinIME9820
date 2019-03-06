@@ -3,7 +3,7 @@
 
     <string name="app_name">FlyscaleIME</string>
     <string name="ime_name">FlyscaleIME</string>
-    <string name="ime_settings_activity_name">谷歌拼音输入法设置</string>
+    <string name="ime_settings_activity_name">飞图拼音输入法设置</string>
     <!-- version = apk(java) + ime engine + sys dict + [hotlist (TBD)] -->
     <string name="version">1.0.0</string>
 

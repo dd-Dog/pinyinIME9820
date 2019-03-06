@@ -15,11 +15,12 @@ import com.keanbin.pinyinime.R;
 public class MyToast {
     public static void show(Context context, String str) {
 
-        Toast toast = new Toast(context);
-        TextView view = (TextView) LayoutInflater.from(context).inflate(R.layout.toast, null);
-        view.setText(str);
-        toast.setView(view);
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.show();
+//        Toast toast = new Toast(context);
+//        TextView view = (TextView) LayoutInflater.from(context).inflate(R.layout.toast, null);
+//        view.setText(str);
+//        toast.setView(view);
+//        toast.setDuration(Toast.LENGTH_SHORT);
+//        toast.show();
+        Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
     }
 }

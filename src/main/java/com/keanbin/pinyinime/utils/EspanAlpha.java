@@ -11,6 +11,7 @@ public class EspanAlpha {
     public static HashMap<Character, String[]> mapsUpper = new HashMap<>();
 
     static {
+        mapsLower.put('1', new String[]{"1"});
         mapsLower.put('2', new String[]{"a", "b", "c", "ch", "2"});
         mapsLower.put('3', new String[]{"d", "e", "f", "3"});
         mapsLower.put('4', new String[]{"g", "h", "i", "4"});
@@ -20,6 +21,7 @@ public class EspanAlpha {
         mapsLower.put('8', new String[]{"t", "u", "v", "8"});
         mapsLower.put('9', new String[]{"w", "x", "y", "z", "9"});
 
+        mapsUpper.put('1', new String[]{"1"});
         mapsUpper.put('2', new String[]{"A", "B", "C", "Ch", "2"});
         mapsUpper.put('3', new String[]{"D", "E", "F", "3"});
         mapsUpper.put('4', new String[]{"G", "H", "I", "4"});

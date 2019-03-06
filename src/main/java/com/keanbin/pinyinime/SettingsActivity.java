@@ -42,8 +42,8 @@ public class SettingsActivity extends PreferenceActivity implements
 
 	private static String TAG = "SettingsActivity";
 
-	private CheckBoxPreference mKeySoundPref;
-	private CheckBoxPreference mVibratePref;
+//	private CheckBoxPreference mKeySoundPref;
+//	private CheckBoxPreference mVibratePref;
 	private CheckBoxPreference mPredictionPref;
 
 	@Override
@@ -53,10 +53,8 @@ public class SettingsActivity extends PreferenceActivity implements
 
 		PreferenceScreen prefSet = getPreferenceScreen();
 
-		mKeySoundPref = (CheckBoxPreference) prefSet
-				.findPreference(getString(R.string.setting_sound_key));
-		mVibratePref = (CheckBoxPreference) prefSet
-				.findPreference(getString(R.string.setting_vibrate_key));
+//		mKeySoundPref = (CheckBoxPreference) prefSet.findPreference(getString(R.string.setting_sound_key));
+//		mVibratePref = (CheckBoxPreference) prefSet.findPreference(getString(R.string.setting_vibrate_key));
 		mPredictionPref = (CheckBoxPreference) prefSet
 				.findPreference(getString(R.string.setting_prediction_key));
 
@@ -100,8 +98,8 @@ public class SettingsActivity extends PreferenceActivity implements
 		super.onPause();
 
 		// 把用户的设置存入配置文件中
-		Settings.setKeySound(mKeySoundPref.isChecked());
-		Settings.setVibrate(mVibratePref.isChecked());
+//		Settings.setKeySound(mKeySoundPref.isChecked());
+//		Settings.setVibrate(mVibratePref.isChecked());
 		Settings.setPrediction(mPredictionPref.isChecked());
 
 		Settings.writeBack();
@@ -115,8 +113,8 @@ public class SettingsActivity extends PreferenceActivity implements
 	 * 从配置文件获取之前的设置，更像UI
 	 */
 	private void updateWidgets() {
-		mKeySoundPref.setChecked(Settings.getKeySound());
-		mVibratePref.setChecked(Settings.getVibrate());
+//		mKeySoundPref.setChecked(Settings.getKeySound());
+//		mVibratePref.setChecked(Settings.getVibrate());
 		mPredictionPref.setChecked(Settings.getPrediction());
 	}
 

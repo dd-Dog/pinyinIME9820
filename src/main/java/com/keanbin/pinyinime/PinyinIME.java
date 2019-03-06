@@ -74,6 +74,7 @@ import com.keanbin.pinyinime.utils.EspanAlpha;
 import com.keanbin.pinyinime.utils.MyToast;
 import com.keanbin.pinyinime.utils.PTAlpha;
 import com.keanbin.pinyinime.utils.T92Pinyin;
+import com.keanbin.pinyinime.utils.ToastUtil;
 
 /**
  * Main class of the Pinyin input method. 输入法服务
@@ -324,10 +325,13 @@ public class PinyinIME extends InputMethodService {
     }
 
     private boolean longBack = false;
+    private boolean mHasKeyDown = true;
+    private int mDownKeyCode = -1;
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyDown() repeatecount=" + event.getRepeatCount());
+        mDownKeyCode = keyCode;
         if (event.getRepeatCount() > 5 && event.getRepeatCount() % 5 == 0) {
             if (keyCode == KeyEvent.KEYCODE_BACK) {
                 InputConnection inputConnection = getCurrentInputConnection();
@@ -341,6 +345,7 @@ public class PinyinIME extends InputMethodService {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             InputConnection ic = getCurrentInputConnection();
             CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+            Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
             if (!TextUtils.isEmpty(textBeforeCursor)) {
 //                boolean b = ic.deleteSurroundingText(1, 0);
 //                if (b)
@@ -357,11 +362,15 @@ public class PinyinIME extends InputMethodService {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
-        InputConnection ic = getCurrentInputConnection();
-        CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
-        Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
-        if (processKey(event, true))
-            return true;
+        if (keyCode == mDownKeyCode) {
+            InputConnection ic = getCurrentInputConnection();
+            CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+            Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+            if (processKey(event, true))
+                return true;
+        }else {
+            Log.d(TAG, "no get key down,ignore it ");
+        }
         boolean superResult = super.onKeyUp(keyCode, event);
         Log.d(TAG, "superResult=" + superResult);
         return superResult;
@@ -433,8 +442,7 @@ public class PinyinIME extends InputMethodService {
         int keyChar = 0;
         if (keyCode >= KeyEvent.KEYCODE_A && keyCode <= KeyEvent.KEYCODE_Z) {
             keyChar = keyCode - KeyEvent.KEYCODE_A + 'a';
-        } else if (keyCode >= KeyEvent.KEYCODE_0
-                && keyCode <= KeyEvent.KEYCODE_9) {
+        } else if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
 //			keyChar = keyCode - KeyEvent.KEYCODE_0 + '0';
             switch (keyCode) {
                 case KeyEvent.KEYCODE_0:
@@ -600,7 +608,7 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_1 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_8) {
             mDecInfo.addStrokeChar(keyCode, false);
             mDecInfo.setmCandidatesList(keyChar);
             mCandidatesContainer.setSplListVisibility(View.VISIBLE);
@@ -681,7 +689,7 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+        if (keyCode >= KeyEvent.KEYCODE_2 && keyCode <= KeyEvent.KEYCODE_9) {
             mDecInfo.setmCandidatesList(keyChar);
             mDecInfo.mPageStart.clear();
             mDecInfo.mPageStart.add(0);
@@ -866,9 +874,9 @@ public class PinyinIME extends InputMethodService {
             if (!realAction || TextUtils.isEmpty(textBeforeCursor)) {
                 //删除按键，需要抬起和按下 都是返回false才行
                 if (TextUtils.isEmpty(textBeforeCursor)) {
-                    mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
-                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
-                    Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
+//                    mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+//                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
+//                    Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
                 }
                 return false;
             }
@@ -1024,6 +1032,15 @@ public class PinyinIME extends InputMethodService {
         // Back key is used to dismiss all popup UI in a soft keyboard.
         // 后退键的处理。副软键盘弹出框显示的时候，如果realAction为true，那么就调用dismissPopupSkb（）隐藏副软键盘弹出框，显示主软键盘视图。
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB){
+                InputConnection ic = getCurrentInputConnection();
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                if (!TextUtils.isEmpty(textBeforeCursor)) {
+                boolean b = ic.deleteSurroundingText(1, 0);
+                if (b)
+                    return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
+                }
+            }
             if (isInputViewShown()) {
                 if (mSkbContainer.handleBack(realAction)) {
                     Log.d(TAG, "inputview shown,dismiss");
@@ -1078,7 +1095,7 @@ public class PinyinIME extends InputMethodService {
                 mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
                         View.VISIBLE : View.GONE);
             //不管当前是什么状态，都置为INPUT状态，并不显示候选view
-//            showToast();
+            showToast();
             Intent inputModeIntent = new Intent(Constants.INPUT_MODE_BROADCAST);
             inputModeIntent.putExtra(Constants.INPUT_MODE, mInputModeSwitcher.getCurrentInputMode());
             sendBroadcast(inputModeIntent);
@@ -1239,28 +1256,34 @@ public class PinyinIME extends InputMethodService {
     private void showToast() {
         switch (mInputModeSwitcher.getCurrentInputMode()) {
             case InputModeSwitcher.MODE_LOWERCASE:
-                MyToast.show(this, "abc");
+                ToastUtil.showToast(this, "abc");
                 break;
             case InputModeSwitcher.MODE_CHINESE:
-                MyToast.show(this, "拼音");
+                ToastUtil.showToast(this, "拼音");
                 break;
             case InputModeSwitcher.MODE_CHINESE_STROKE:
-                MyToast.show(this, "笔画");
+                ToastUtil.showToast(this, "笔画");
                 break;
             case InputModeSwitcher.MODE_UPPERCASE:
-                MyToast.show(this, "ABC");
+                ToastUtil.showToast(this, "ABC");
                 break;
             case InputModeSwitcher.MODE_NUMBER:
-                MyToast.show(this, "123");
+                ToastUtil.showToast(this, "123");
                 break;
             case InputModeSwitcher.MODE_HKB:
-                MyToast.show(this, "123");
+                ToastUtil.showToast(this, "123");
                 break;
             case InputModeSwitcher.MODE_PT_LOWER:
-                MyToast.show(this, "pt");
+                ToastUtil.showToast(this, "pt");
                 break;
             case InputModeSwitcher.MODE_PT_UPPER:
-                MyToast.show(this, "PT");
+                ToastUtil.showToast(this, "PT");
+                break;
+            case InputModeSwitcher.MODE_ESPAN_LOWER:
+                ToastUtil.showToast(this, "es");
+                break;
+            case InputModeSwitcher.MODE_ESPAN_UPPER:
+                ToastUtil.showToast(this, "ES");
                 break;
         }
     }
@@ -1327,10 +1350,10 @@ public class PinyinIME extends InputMethodService {
                 return false;
             }
             if (TextUtils.isEmpty(textBeforeCursor)) {
-                mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
-                mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
-                Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
-                return false;
+//                mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+//                mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
+//                Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
+//                return false;
             }
             if (SIMULATE_KEY_DELETE) {
                 // 模拟删除键发送给 EditText
@@ -2019,8 +2042,11 @@ public class PinyinIME extends InputMethodService {
         Log.d(TAG, "commitResultText()::resultText=" + resultText);
         InputConnection ic = getCurrentInputConnection();
         Log.d(TAG, "getCurrentInputConnection=" + ic);
-        if (null != ic)
+        if (null != ic) {
             ic.commitText(resultText, 1);
+
+            resetToIdleState(false);
+        }
         if (null != mComposingView) {
             mComposingView.setVisibility(View.INVISIBLE);
             mComposingView.invalidate();
@@ -2499,6 +2525,12 @@ public class PinyinIME extends InputMethodService {
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         registerReceiver(mReceiver, intentFilter);
+
+        if (mCandidatesContainer!= null) {
+            Log.d(TAG, "mCandidatesContainer request focus");
+            mCandidatesContainer.setFocusable(true);
+            mCandidatesContainer.requestFocus();
+        }
     }
 
     @Override
@@ -3310,7 +3342,7 @@ public class PinyinIME extends InputMethodService {
                 }
             } else {
                 int base = 0;
-                if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_UPPERCASE) {
+                if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_UPPERCASE && input != '1') {
                     base = -32;
                 }
                 mCandidatesList.add((char) (input + base) + "");

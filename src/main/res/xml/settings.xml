@@ -17,7 +17,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/setting" >
 
-    <CheckBoxPreference
+<!--    <CheckBoxPreference
         android:key="@string/setting_sound_key"
         android:persistent="true"
         android:summaryOff="@string/setting_disabled"
@@ -28,7 +28,7 @@
         android:persistent="false"
         android:summaryOff="@string/setting_disabled"
         android:summaryOn="@string/setting_enabled"
-        android:title="@string/setting_vibrate_title" />
+        android:title="@string/setting_vibrate_title" />-->
     <CheckBoxPreference
         android:key="@string/setting_prediction_key"
         android:persistent="true"
