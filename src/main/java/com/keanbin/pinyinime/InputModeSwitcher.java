@@ -391,6 +391,10 @@ public class InputModeSwitcher {
         return mCurrentInputMode == MODE_ESPAN_LOWER || mCurrentInputMode == MODE_ESPAN_UPPER;
     }
 
+    public boolean isRussia() {
+        return mCurrentInputMode == MODE_RUSSIA;
+    }
+
     /**
      * 控制当前输入法模式软键盘布局要显示的按键切换状态和要显示的行ID的管理类。比如当前软键盘布局中
      * ，有一个按键有默认状态、和两个切换状态，ToggleStates中的mKeyStates[]保存的就是当前要显示的切换状态
@@ -493,6 +497,7 @@ public class InputModeSwitcher {
     public static final int MODE_PT_UPPER = 1008;//葡语大写
     public static final int MODE_ESPAN_LOWER = 1010;//葡语大写
     public static final int MODE_ESPAN_UPPER = 1011;//葡语大写
+    public static final int MODE_RUSSIA = 1012;//俄语
     public static final int MODE_CHINESE_STROKE = 1009;//笔画
     private int mCurrentInputMode = MODE_HKB;
     private int mLastInputMode = MODE_UNSET;
@@ -623,6 +628,9 @@ public class InputModeSwitcher {
                     mCurrentInputMode = MODE_ESPAN_UPPER;
                     break;
                 case MODE_ESPAN_UPPER:
+                    mCurrentInputMode = MODE_RUSSIA;
+                    break;
+                case MODE_RUSSIA:
                     mCurrentInputMode = MODE_NUMBER;
                     break;
                 case MODE_NUMBER:

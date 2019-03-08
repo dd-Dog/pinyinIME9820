@@ -73,6 +73,7 @@ import com.keanbin.pinyinime.utils.ChineseStroke;
 import com.keanbin.pinyinime.utils.EspanAlpha;
 import com.keanbin.pinyinime.utils.MyToast;
 import com.keanbin.pinyinime.utils.PTAlpha;
+import com.keanbin.pinyinime.utils.RussiaAlpha;
 import com.keanbin.pinyinime.utils.T92Pinyin;
 import com.keanbin.pinyinime.utils.ToastUtil;
 
@@ -344,12 +345,14 @@ public class PinyinIME extends InputMethodService {
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             InputConnection ic = getCurrentInputConnection();
-            CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
-            Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
-            if (!TextUtils.isEmpty(textBeforeCursor)) {
+            if (ic != null) {
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                if (!TextUtils.isEmpty(textBeforeCursor)) {
 //                boolean b = ic.deleteSurroundingText(1, 0);
 //                if (b)
-                return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
+                    return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
+                }
             }
         }
         if (processKey(event, false))
@@ -364,11 +367,13 @@ public class PinyinIME extends InputMethodService {
         Log.d(TAG, "onKeyUp:: keyCode=" + keyCode);
         if (keyCode == mDownKeyCode) {
             InputConnection ic = getCurrentInputConnection();
-            CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
-            Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+            if (ic != null) {
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+            }
             if (processKey(event, true))
                 return true;
-        }else {
+        } else {
             Log.d(TAG, "no get key down,ignore it ");
         }
         boolean superResult = super.onKeyUp(keyCode, event);
@@ -499,6 +504,12 @@ public class PinyinIME extends InputMethodService {
                 return processStateStrokeIdle(keyChar, keyCode, event, realAction);
             } else if (mImeState == ImeState.STATE_INPUT) {
                 return processStateStrokeInput(keyChar, keyCode, event, realAction);
+            }
+        } else if (mInputModeSwitcher.isRussia()) {
+            if (mImeState == ImeState.STATE_IDLE) {
+                return processStateRussiaIdle(keyChar, keyCode, event, realAction);
+            } else if (mImeState == ImeState.STATE_INPUT) {
+                return processStateRussiaInput(keyChar, keyCode, event, realAction);
             }
         } else if (mInputModeSwitcher.isPortuguese()) {
             if (mImeState == ImeState.STATE_IDLE) {
@@ -715,6 +726,45 @@ public class PinyinIME extends InputMethodService {
         return false;
     }
 
+    private boolean processStateRussiaIdle(int keyChar, int keyCode,
+                                           KeyEvent event, boolean realAction) {
+        Log.d(TAG, "processStateRussiaIdle");
+        if (realAction) {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                mDecInfo.setmCandidatesList(keyChar);
+                mDecInfo.mPageStart.clear();
+                mDecInfo.mPageStart.add(0);
+                mDecInfo.mCnToPage.clear();
+                mDecInfo.mCnToPage.add(0);
+                changeToStateInput(true);
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                // 发送删除一个字符的操作给 EditText
+                InputConnection ic = getCurrentInputConnection();
+                Log.d(TAG, "getCurrentInputConnection=" + ic);
+                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                if (TextUtils.isEmpty(textBeforeCursor)) {
+                    mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
+                    mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
+                    Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
+                    return false;
+                }
+                Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
+                boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
+                Log.d(TAG, "删除操作b=" + b);
+                return true;
+            }
+        } else {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+                //英文输入状态下，0-9这几个按键的down事件返回true，不能被作其它处理--bianjb
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * 英文输入时，IDLE状态下按键处理
      *
@@ -726,7 +776,7 @@ public class PinyinIME extends InputMethodService {
      */
     private boolean processStatePortugueseIdle(int keyChar, int keyCode,
                                                KeyEvent event, boolean realAction) {
-        Log.d(TAG, "processStateEnglishIdle");
+        Log.d(TAG, "processStatePortugueseIdle");
         if (realAction) {
             if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
                 mDecInfo.setmCandidatesList(keyChar);
@@ -774,7 +824,47 @@ public class PinyinIME extends InputMethodService {
      */
     private boolean processStatePortugueseInput(int keyChar, int keyCode, KeyEvent event, boolean
             realAction) {
-        Log.d(TAG, "processStateEnglishInput");
+        Log.d(TAG, "processStatePortugueseInput");
+        if (!realAction) {
+            return true;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            resetToIdleState(true);
+//            setCandidatesViewShown(false);
+            requestHideSelf(0);
+            return true;
+        }
+
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            mDecInfo.setmCandidatesList(keyChar);
+            mDecInfo.mPageStart.clear();
+            mDecInfo.mPageStart.add(0);
+            mDecInfo.mCnToPage.clear();
+            mDecInfo.mCnToPage.add(0);
+            changeToStateInput(true);
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                // 高亮位置向上一个候选词移动或者移动到上一页的最后一个候选词的位置。
+                mCandidatesContainer.activeCurseBackward();
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                mCandidatesContainer.activeCurseForward();
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean processStateRussiaInput(int keyChar, int keyCode, KeyEvent event, boolean
+            realAction) {
+        Log.d(TAG, "processStateRussiaInput");
         if (!realAction) {
             return true;
         }
@@ -1032,13 +1122,13 @@ public class PinyinIME extends InputMethodService {
         // Back key is used to dismiss all popup UI in a soft keyboard.
         // 后退键的处理。副软键盘弹出框显示的时候，如果realAction为true，那么就调用dismissPopupSkb（）隐藏副软键盘弹出框，显示主软键盘视图。
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB){
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
                 InputConnection ic = getCurrentInputConnection();
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                 if (!TextUtils.isEmpty(textBeforeCursor)) {
-                boolean b = ic.deleteSurroundingText(1, 0);
-                if (b)
-                    return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
+                    boolean b = ic.deleteSurroundingText(1, 0);
+                    if (b)
+                        return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
                 }
             }
             if (isInputViewShown()) {
@@ -1284,6 +1374,9 @@ public class PinyinIME extends InputMethodService {
                 break;
             case InputModeSwitcher.MODE_ESPAN_UPPER:
                 ToastUtil.showToast(this, "ES");
+                break;
+            case InputModeSwitcher.MODE_RUSSIA:
+                ToastUtil.showToast(this, "RU");
                 break;
         }
     }
@@ -2526,7 +2619,7 @@ public class PinyinIME extends InputMethodService {
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         registerReceiver(mReceiver, intentFilter);
 
-        if (mCandidatesContainer!= null) {
+        if (mCandidatesContainer != null) {
             Log.d(TAG, "mCandidatesContainer request focus");
             mCandidatesContainer.setFocusable(true);
             mCandidatesContainer.requestFocus();
@@ -3292,6 +3385,41 @@ public class PinyinIME extends InputMethodService {
                     chars = PTAlpha.getLower(key);
                 } else {
                     chars = PTAlpha.getUpper(key);
+                }
+                for (int i = 0; i < chars.length; i++) {
+                    mCandidatesList.add(chars[i] + "");
+                }
+            } else if (mInputModeSwitcher.isRussia()) {
+                char key = '1';
+                switch (input) {
+                    case 'a':
+                        key = '2';
+                        break;
+                    case 'd':
+                        key = '3';
+                        break;
+                    case 'g':
+                        key = '4';
+                        break;
+                    case 'j':
+                        key = '5';
+                        break;
+                    case 'm':
+                        key = '6';
+                        break;
+                    case 't':
+                        key = '7';
+                        break;
+                    case 'p':
+                        key = '8';
+                        break;
+                    case 'w':
+                        key = '9';
+                        break;
+                }
+                String[] chars = null;
+                if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_RUSSIA) {
+                    chars = RussiaAlpha.getLower(key);
                 }
                 for (int i = 0; i < chars.length; i++) {
                     mCandidatesList.add(chars[i] + "");

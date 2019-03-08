@@ -508,15 +508,19 @@ public class CandidatesContainer extends LinearLayout implements
             return false;
 
         int child = mFlipper.getDisplayedChild();
-        int childNext = (child + 1) % 2;
+        int childNext = (child + 1) % 2;//因为ViewFlipper只有两个子view,模2实现循环滚动
         CandidateView cv = (CandidateView) mFlipper.getChildAt(child);
         CandidateView cvNext = (CandidateView) mFlipper.getChildAt(childNext);
 
         mCurrentPage--;
         int activeCandInPage = cv.getActiveCandiatePosInPage();
         if (animLeftRight)
-            activeCandInPage = mDecInfo.mPageStart.elementAt(mCurrentPage + 1)
-                    - mDecInfo.mPageStart.elementAt(mCurrentPage) - 1;
+            if (mDecInfo != null && mDecInfo.mPageStart != null && mDecInfo.mPageStart.size() > mCurrentPage + 2) {
+                activeCandInPage = mDecInfo.mPageStart.elementAt(mCurrentPage + 1)
+                        - mDecInfo.mPageStart.elementAt(mCurrentPage) - 1;
+            } else {
+                return false;
+            }
 
         cvNext.showPage(mCurrentPage, activeCandInPage, enableActiveHighlight);
         loadAnimation(animLeftRight, false);
