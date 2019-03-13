@@ -30,12 +30,17 @@ import com.keanbin.pinyinime.constant.Constants;
 
 import java.util.Locale;
 
+import static com.keanbin.pinyinime.constant.Constants.EN_PT_ES;
+import static com.keanbin.pinyinime.constant.Constants.EN_RU;
+
 /**
  * 输入法模式转换器。设置输入法的软键盘。
  *
  * @author keanbin
  */
 public class InputModeSwitcher {
+
+
     /**
      * User defined key code, used by soft keyboard.
      * 用户定义的key的code，用于软键盘。shift键的code。
@@ -566,42 +571,19 @@ public class InputModeSwitcher {
      */
     public void toggleNextState(String language) {
         Log.d(TAG, "toggleNextState::language=" + language);
-        if (language.contains("zh") || language.contains("ZH")) {
-            switch (mCurrentInputMode) {
-                case MODE_CHINESE:
-                    mCurrentInputMode = MODE_LOWERCASE;
-                    break;
-                case MODE_LOWERCASE:
-                    mCurrentInputMode = MODE_UPPERCASE;
-                    break;
-                case MODE_UPPERCASE:
-                    mCurrentInputMode = MODE_NUMBER;
-                    break;
-                case MODE_NUMBER:
-                    mCurrentInputMode = MODE_CHINESE;
-                    break;
-                case MODE_SYMBOL:
-                    mCurrentInputMode = mLastInputMode;
-                    break;
-                case MODE_UNSETTED:
-                    break;
-            }
-        } else if (language.contains("pt") || language.contains("PT")) {
+
+        if (Constants.LANGUAGE_SUPPORT == EN_RU) {
             switch (mCurrentInputMode) {
                 case MODE_LOWERCASE:
                     mCurrentInputMode = MODE_UPPERCASE;
                     break;
                 case MODE_UPPERCASE:
-                    mCurrentInputMode = MODE_PT_LOWER;
+                    mCurrentInputMode = MODE_RUSSIA;
                     break;
-                case MODE_PT_LOWER:
-                    mCurrentInputMode = MODE_PT_UPPER;
-                    break;
-                case MODE_PT_UPPER:
+                case MODE_RUSSIA:
                     mCurrentInputMode = MODE_NUMBER;
                     break;
                 case MODE_NUMBER:
-//                    mCurrentInputMode = MODE_CHINESE;
                     mCurrentInputMode = MODE_LOWERCASE;
                     break;
                 case MODE_SYMBOL:
@@ -610,7 +592,7 @@ public class InputModeSwitcher {
                 case MODE_UNSETTED:
                     break;
             }
-        } else {
+        }else if (Constants.LANGUAGE_SUPPORT == EN_PT_ES){
             switch (mCurrentInputMode) {
                 case MODE_LOWERCASE:
                     mCurrentInputMode = MODE_UPPERCASE;
@@ -628,9 +610,6 @@ public class InputModeSwitcher {
                     mCurrentInputMode = MODE_ESPAN_UPPER;
                     break;
                 case MODE_ESPAN_UPPER:
-                    mCurrentInputMode = MODE_RUSSIA;
-                    break;
-                case MODE_RUSSIA:
                     mCurrentInputMode = MODE_NUMBER;
                     break;
                 case MODE_NUMBER:
