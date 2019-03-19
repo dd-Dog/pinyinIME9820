@@ -1124,11 +1124,13 @@ public class PinyinIME extends InputMethodService {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
                 InputConnection ic = getCurrentInputConnection();
-                CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
-                if (!TextUtils.isEmpty(textBeforeCursor)) {
-                    boolean b = ic.deleteSurroundingText(1, 0);
-                    if (b)
-                        return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
+                if (ic!= null) {
+                    CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                    if (!TextUtils.isEmpty(textBeforeCursor)) {
+                        boolean b = ic.deleteSurroundingText(1, 0);
+                        if (b)
+                            return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
+                    }
                 }
             }
             if (isInputViewShown()) {

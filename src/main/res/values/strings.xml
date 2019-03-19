@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="app_name">FlyscaleIME</string>
-    <string name="ime_name">FlyscaleIME</string>
-    <string name="ime_settings_activity_name">飞图拼音输入法设置</string>
+    <string name="app_name">IME</string>
+    <string name="ime_name">IME</string>
+    <string name="ime_settings_activity_name">拼音输入法设置</string>
     <!-- version = apk(java) + ime engine + sys dict + [hotlist (TBD)] -->
     <string name="version">1.0.0</string>
 
@@ -32,7 +32,7 @@
     <string name="setting_prediction_key">setting_prediction_key</string>
     <string name="setting_switch_key">setting_switch_key</string>
     <string name="setting_advanced_key">setting_advanced_key</string>
-    <string name="setting">飞图拼音输入法设置</string>
+    <string name="setting">拼音输入法设置</string>
     <string name="setting_sound_key_title">按键声音</string>
     <string name="setting_vibrate_title">按键震动</string>
     <string name="setting_prediction_title">联想输入</string>
