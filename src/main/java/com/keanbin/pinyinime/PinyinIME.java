@@ -454,7 +454,7 @@ public class PinyinIME extends InputMethodService {
                     keyChar = keyCode - KeyEvent.KEYCODE_0 + '0';
                     if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_NUMBER
                             && mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher
-                            .MODE_HKB) {
+                            .MODE_HKB && realAction) {
                         commitResultText(" ");
                         return true;
                     }
