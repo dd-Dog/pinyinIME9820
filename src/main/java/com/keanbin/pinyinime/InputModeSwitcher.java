@@ -522,12 +522,21 @@ public class InputModeSwitcher {
                 mCurrentInputMode = MODE_HKB;
                 break;
             case EditorInfo.TYPE_CLASS_TEXT:
-                String locale = Locale.getDefault().getLanguage();
+                /*String locale = Locale.getDefault().getLanguage();
                 Log.d(TAG, "locale=" + locale);
                 if (locale.contains("zh") || locale.contains("ZH")) {
                     mCurrentInputMode = MODE_CHINESE;
                 } else {
                     mCurrentInputMode = MODE_LOWERCASE;
+                }*/
+                if (Constants.LANGUAGE_SUPPORT == Constants.EN){
+                    mCurrentInputMode = MODE_LOWERCASE;
+                }else if(Constants.LANGUAGE_SUPPORT == Constants.PT){
+                    mCurrentInputMode = MODE_PT_LOWER;
+                }else if(Constants.LANGUAGE_SUPPORT == Constants.ES){
+                    mCurrentInputMode = MODE_ESPAN_LOWER;
+                }else if(Constants.LANGUAGE_SUPPORT == Constants.RU){
+                    mCurrentInputMode = MODE_RUSSIA;
                 }
                 break;
             default:
@@ -614,6 +623,71 @@ public class InputModeSwitcher {
                     break;
                 case MODE_NUMBER:
                     mCurrentInputMode = MODE_LOWERCASE;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
+        }else if (Constants.LANGUAGE_SUPPORT == Constants.EN) {
+            switch (mCurrentInputMode) {
+                case MODE_LOWERCASE:
+                    mCurrentInputMode = MODE_UPPERCASE;
+                    break;
+                case MODE_UPPERCASE:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+                    mCurrentInputMode = MODE_LOWERCASE;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
+        }else if (Constants.LANGUAGE_SUPPORT == Constants.RU) {
+            switch (mCurrentInputMode) {
+                case MODE_RUSSIA:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+                    mCurrentInputMode = MODE_RUSSIA;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
+        }else if (Constants.LANGUAGE_SUPPORT == Constants.PT) {
+            switch (mCurrentInputMode) {
+                case MODE_PT_LOWER:
+                    mCurrentInputMode = MODE_PT_UPPER;
+                    break;
+                case MODE_PT_UPPER:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+                    mCurrentInputMode = MODE_PT_LOWER;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
+        }else if (Constants.LANGUAGE_SUPPORT == Constants.ES) {
+            switch (mCurrentInputMode) {
+                case MODE_ESPAN_LOWER:
+                    mCurrentInputMode = MODE_ESPAN_UPPER;
+                    break;
+                case MODE_ESPAN_UPPER:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+                    mCurrentInputMode = MODE_ESPAN_LOWER;
                     break;
                 case MODE_SYMBOL:
                     mCurrentInputMode = mLastInputMode;
