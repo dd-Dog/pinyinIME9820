@@ -515,7 +515,7 @@ public class InputModeSwitcher {
      * @return
      */
     public void requestInputType(EditorInfo editorInfo) {
-        Log.e(TAG, "inputType=" + (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS));
+        Log.e(TAG, "requestInputType，inputType=" + (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS));
         switch (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS) {
             case EditorInfo.TYPE_CLASS_NUMBER:
             case EditorInfo.TYPE_CLASS_PHONE:
@@ -529,6 +529,20 @@ public class InputModeSwitcher {
                 } else {
                     mCurrentInputMode = MODE_LOWERCASE;
                 }*/
+                String language = mContext.getResources().getConfiguration().locale.getLanguage();
+                Log.d(TAG, "language=" + language);
+                if (TextUtils.equals("en", language)){
+                    Constants.LANGUAGE_SUPPORT = Constants.EN;
+                }else if (TextUtils.equals("pt", language)){
+                    Constants.LANGUAGE_SUPPORT = Constants.PT;
+                }else if (TextUtils.equals("ru", language)){
+                    Constants.LANGUAGE_SUPPORT = Constants.RU;
+                }else if (TextUtils.equals("es", language)){
+                    Constants.LANGUAGE_SUPPORT = Constants.ES;
+                }else {
+                    Constants.LANGUAGE_SUPPORT = Constants.EN;
+                }
+                Log.d(TAG, "LANGUAGE_SUPPORT=" + Constants.LANGUAGE_SUPPORT);
                 if (Constants.LANGUAGE_SUPPORT == Constants.EN){
                     mCurrentInputMode = MODE_LOWERCASE;
                 }else if(Constants.LANGUAGE_SUPPORT == Constants.PT){
