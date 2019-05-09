@@ -24,6 +24,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -43,6 +44,7 @@ import android.inputmethodservice.InputMethodService;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
@@ -70,6 +72,7 @@ import com.keanbin.pinyinime.constant.Constants;
 import com.keanbin.pinyinime.db.StrokeDAO;
 import com.keanbin.pinyinime.service.LoadService;
 import com.keanbin.pinyinime.utils.ChineseStroke;
+import com.keanbin.pinyinime.utils.EnglishAlpha;
 import com.keanbin.pinyinime.utils.EspanAlpha;
 import com.keanbin.pinyinime.utils.MyToast;
 import com.keanbin.pinyinime.utils.PTAlpha;
@@ -371,14 +374,133 @@ public class PinyinIME extends InputMethodService {
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
             }
-            if (processKey(event, true))
+            if (processKey(event, true)) {
+
+                if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_HKB &&
+                        keyCode > KeyEvent.KEYCODE_1 && keyCode < KeyEvent.KEYCODE_STAR) {
+                    //先清除未处理的超时消息
+                    KeyCodeCounter.removeMessages(MSG_KEYUP_COUNTER_TIMEOUT);
+                    //发送按键消息
+                    Message message = KeyCodeCounter.obtainMessage();
+                    message.what = MSG_KEYUP_COUNTER;
+                    message.arg1 = keyCode;
+                    KeyCodeCounter.sendMessage(message);
+
+                    KeyCodeCounter.sendEmptyMessageDelayed(MSG_KEYUP_COUNTER_TIMEOUT, MSG_KEYUP_COUNTER_TIMEOUT_DELAYED);
+                }
                 return true;
+            }
         } else {
             Log.d(TAG, "no get key down,ignore it ");
         }
+
+
         boolean superResult = super.onKeyUp(keyCode, event);
         Log.d(TAG, "superResult=" + superResult);
         return superResult;
+    }
+
+    private static final int MSG_KEYUP_COUNTER = 5001;
+    private static final int MSG_KEYUP_COUNTER_TIMEOUT = 5002;
+    private static final int MSG_KEYUP_COUNTER_TIMEOUT_DELAYED = 1000;
+    private int mInputKeyCode = 0;
+    private int mInputKeyCodeTime = 0;
+    @SuppressLint("HandlerLeak")
+    private Handler KeyCodeCounter = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_KEYUP_COUNTER:
+                    Log.d(TAG, "MSG_KEYUP_COUNTER");
+                    if (mInputKeyCode == msg.arg1) {
+                        mInputKeyCodeTime++;
+                        String charStr = getNextChar(mInputKeyCode, mInputKeyCodeTime);
+                        Log.d(TAG, "nextChar=" + charStr);
+                        InputConnection currentInputConnection = getCurrentInputConnection();
+                        currentInputConnection.deleteSurroundingText(1, 0);
+                        currentInputConnection.commitText(charStr, 1);
+                    } else {
+                        mInputKeyCode = msg.arg1;
+                        mInputKeyCodeTime = 1;
+
+                        String charStr = getNextChar(mInputKeyCode, mInputKeyCodeTime);
+                        Log.d(TAG, "nextChar=" + charStr);
+                        InputConnection currentInputConnection = getCurrentInputConnection();
+                        currentInputConnection.commitText(charStr, 1);
+                    }
+
+                    break;
+                case MSG_KEYUP_COUNTER_TIMEOUT:
+                    Log.d(TAG, "MSG_KEYUP_COUNTER_TIMEOUT");
+                    mInputKeyCode = 0;
+                    mInputKeyCodeTime = 0;
+                    break;
+            }
+        }
+    };
+
+    private String getNextChar(int keyCode, int times) {
+        Log.d(TAG, "getNextChar,keyCode=" + keyCode + ",times=" + times);
+        char key = '1';
+        String[] charsStr = null;
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_2:
+                key = '2';
+                break;
+            case KeyEvent.KEYCODE_3:
+                key = '3';
+                break;
+            case KeyEvent.KEYCODE_4:
+                key = '4';
+                break;
+            case KeyEvent.KEYCODE_5:
+                key = '5';
+                break;
+            case KeyEvent.KEYCODE_6:
+                key = '6';
+                break;
+            case KeyEvent.KEYCODE_7:
+                key = '7';
+                break;
+            case KeyEvent.KEYCODE_8:
+                key = '8';
+                break;
+            case KeyEvent.KEYCODE_9:
+                key = '9';
+                break;
+        }
+        if (mInputModeSwitcher.isPortuguese()) {
+
+            char[] chars = null;
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_PT_LOWER) {
+                chars = PTAlpha.getLower(key);
+            } else {
+                chars = PTAlpha.getUpper(key);
+            }
+            return String.valueOf(chars[(times - 1) % chars.length]);
+        } else if (mInputModeSwitcher.isRussia()) {
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_RUSSIA) {
+                charsStr = RussiaAlpha.getLower(key);
+            }
+
+        } else if (mInputModeSwitcher.isEspan()) {
+
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_ESPAN_LOWER) {
+                charsStr = EspanAlpha.getLower(key);
+            } else {
+                charsStr = EspanAlpha.getUpper(key);
+            }
+        } else {
+            if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_UPPERCASE) {
+                charsStr = EnglishAlpha.getUpper(key);
+
+            } else {
+                charsStr = EnglishAlpha.getLower(key);
+            }
+        }
+        assert charsStr != null;
+        return String.valueOf(charsStr[(times - 1) % charsStr.length]);
     }
 
     @Override
@@ -391,6 +513,7 @@ public class PinyinIME extends InputMethodService {
      *
      * @param text
      */
+
     public void SetText(CharSequence text) {
         Log.d(TAG, "SetText()");
         InputConnection ic = getCurrentInputConnection();
@@ -1124,7 +1247,7 @@ public class PinyinIME extends InputMethodService {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
                 InputConnection ic = getCurrentInputConnection();
-                if (ic!= null) {
+                if (ic != null) {
                     CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                     if (!TextUtils.isEmpty(textBeforeCursor)) {
                         boolean b = ic.deleteSurroundingText(1, 0);
