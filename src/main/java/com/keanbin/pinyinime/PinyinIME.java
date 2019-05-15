@@ -376,8 +376,10 @@ public class PinyinIME extends InputMethodService {
             }
             if (processKey(event, true)) {
 
-                if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_HKB &&
-                        keyCode > KeyEvent.KEYCODE_1 && keyCode < KeyEvent.KEYCODE_STAR) {
+                if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_SYMBOL &&
+                        mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_HKB &&
+                        mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_NUMBER &&
+                        keyCode > KeyEvent.KEYCODE_0 && keyCode < KeyEvent.KEYCODE_POUND) {
                     //先清除未处理的超时消息
                     KeyCodeCounter.removeMessages(MSG_KEYUP_COUNTER_TIMEOUT);
                     //发送按键消息
@@ -393,7 +395,6 @@ public class PinyinIME extends InputMethodService {
         } else {
             Log.d(TAG, "no get key down,ignore it ");
         }
-
 
         boolean superResult = super.onKeyUp(keyCode, event);
         Log.d(TAG, "superResult=" + superResult);
@@ -445,6 +446,9 @@ public class PinyinIME extends InputMethodService {
         char key = '1';
         String[] charsStr = null;
         switch (keyCode) {
+            case KeyEvent.KEYCODE_1:
+                key = '1';
+                break;
             case KeyEvent.KEYCODE_2:
                 key = '2';
                 break;
@@ -469,6 +473,8 @@ public class PinyinIME extends InputMethodService {
             case KeyEvent.KEYCODE_9:
                 key = '9';
                 break;
+            case KeyEvent.KEYCODE_STAR:
+                return String.valueOf(SYMBOLS[(times - 1) % SYMBOLS.length]);
         }
         if (mInputModeSwitcher.isPortuguese()) {
 
@@ -579,6 +585,10 @@ public class PinyinIME extends InputMethodService {
                             && mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher
                             .MODE_HKB && realAction) {
                         commitResultText(" ");
+                        if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
+                            String language = getResources().getConfiguration().locale.getLanguage();
+                            mInputModeSwitcher.toggleNextState(language);
+                        }
                         return true;
                     }
                     break;
@@ -1293,8 +1303,6 @@ public class PinyinIME extends InputMethodService {
             if (!realAction) {
                 return true;
             }
-
-
             //如果是输入类型是PHONE，也不进行切换
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_HKB) {
                 return true;
@@ -1342,10 +1350,10 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mCursorPos = 0;
             mDecInfo.inputKeyChars.clear();
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
-                String language = getResources().getConfiguration().locale.getLanguage();
+                /*String language = getResources().getConfiguration().locale.getLanguage();
                 mInputModeSwitcher.toggleNextState(language);
                 mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
-                setCandidatesViewShown(false);
+                setCandidatesViewShown(false);*/
             } else {
                 //如果当前是输入中文或者英文状态就切换到输入字符状态
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_SYMBOL);
@@ -1357,8 +1365,9 @@ public class PinyinIME extends InputMethodService {
                 mDecInfo.mCnToPage.add(0);
                 changeToStateInput(true);
             }
-            mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
-                    View.VISIBLE : View.GONE);
+            if (mCandidatesContainer != null)
+                mCandidatesContainer.setSplListVisibility(mInputModeSwitcher.isChineseMode() ?
+                        View.VISIBLE : View.GONE);
             return true;
         }
 
@@ -2223,6 +2232,9 @@ public class PinyinIME extends InputMethodService {
      * @param updateUi 是否更新UI
      */
     private void changeToStateInput(boolean updateUi) {
+        if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_SYMBOL) {
+            return;
+        }
         Log.d(TAG, "changeToStateInput()");
         mImeState = ImeState.STATE_INPUT;
         mDecInfo.imeState = mImeState;
@@ -3250,6 +3262,14 @@ public class PinyinIME extends InputMethodService {
     }
 
     /**
+     * 设置英文状态下候选词列表
+     * bianjb
+     */
+    private char[] SYMBOLS = {'?', '.', '，', ',', ':', '`', '~', '-', '_', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+',
+            '`', '\'', '"', ';', ',', '。', '{', '}', '[', ']', '【', '】',
+            '、', '|', '<', '>', '《', '》', '/', '\\', '？'};
+
+    /**
      * 词库解码操作对象
      *
      * @author keanbin
@@ -3463,13 +3483,6 @@ public class PinyinIME extends InputMethodService {
 
         }
 
-        /**
-         * 设置英文状态下候选词列表
-         * bianjb
-         */
-        private char[] SYMBOLS = {'?', '.', '，', ',', ':', '`', '~', '-', '_', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+',
-                '`', '\'', '"', ';', ',', '。', '{', '}', '[', ']', '【', '】',
-                '、', '|', '<', '>', '《', '》', '/', '\\', '？'};
 
         public void setmCandidatesList(int input) {
             mCandidatesList.clear();
