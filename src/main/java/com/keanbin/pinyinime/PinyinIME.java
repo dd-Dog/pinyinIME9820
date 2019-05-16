@@ -93,6 +93,8 @@ public class PinyinIME extends InputMethodService {
     /**
      * If is is true, IME will simulate key events for delete key, and send the
      * events back to the application.
+     *
+     * @deprecated
      */
     private static final boolean SIMULATE_KEY_DELETE = false;
 
@@ -332,6 +334,7 @@ public class PinyinIME extends InputMethodService {
     private boolean mHasKeyDown = true;
     private int mDownKeyCode = -1;
 
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "onKeyDown() repeatecount=" + event.getRepeatCount());
@@ -342,6 +345,7 @@ public class PinyinIME extends InputMethodService {
                 CharSequence textBeforeCursor = inputConnection.getTextBeforeCursor(1, 0);
                 if (!TextUtils.isEmpty(textBeforeCursor)) {
                     inputConnection.deleteSurroundingText(1, 0);
+                    simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                     return true;
                 }
             }
@@ -358,6 +362,7 @@ public class PinyinIME extends InputMethodService {
                 }
             }
         }
+        Log.d(TAG, "111111111");
         if (processKey(event, false))
             return true;
         boolean superResult = super.onKeyDown(keyCode, event);
@@ -379,7 +384,8 @@ public class PinyinIME extends InputMethodService {
                 if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_SYMBOL &&
                         mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_HKB &&
                         mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_NUMBER &&
-                        keyCode > KeyEvent.KEYCODE_0 && keyCode < KeyEvent.KEYCODE_POUND) {
+                        keyCode > KeyEvent.KEYCODE_0 && keyCode < KeyEvent.KEYCODE_STAR &&
+                        keyCode != KeyEvent.KEYCODE_1) {
                     //先清除未处理的超时消息
                     KeyCodeCounter.removeMessages(MSG_KEYUP_COUNTER_TIMEOUT);
                     //发送按键消息
@@ -447,8 +453,9 @@ public class PinyinIME extends InputMethodService {
         String[] charsStr = null;
         switch (keyCode) {
             case KeyEvent.KEYCODE_1:
-                key = '1';
-                break;
+                return "";
+//                key = '1';
+//                break;
             case KeyEvent.KEYCODE_2:
                 key = '2';
                 break;
@@ -717,8 +724,9 @@ public class PinyinIME extends InputMethodService {
                 InputConnection ic = getCurrentInputConnection();
                 Log.d(TAG, "getCurrentInputConnection=" + ic);
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
+                CharSequence textAfterCursor = ic.getTextAfterCursor(1, 0);
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
-                if (TextUtils.isEmpty(textBeforeCursor)) {
+                if (TextUtils.isEmpty(textBeforeCursor) && TextUtils.isEmpty(textAfterCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
                     mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
@@ -726,6 +734,7 @@ public class PinyinIME extends InputMethodService {
                 }
                 Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
                 boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
+                simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                 Log.d(TAG, "删除操作b=" + b);
                 return true;
             }
@@ -784,7 +793,7 @@ public class PinyinIME extends InputMethodService {
                                           KeyEvent event, boolean realAction) {
         Log.d(TAG, "processStateEspanIdle");
         if (realAction) {
-            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_1) {
                 mDecInfo.setmCandidatesList(keyChar);
                 mDecInfo.mPageStart.clear();
                 mDecInfo.mPageStart.add(0);
@@ -799,7 +808,9 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "getCurrentInputConnection=" + ic);
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
-                if (TextUtils.isEmpty(textBeforeCursor)) {
+                CharSequence textAfterCursor = ic.getTextAfterCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                if (TextUtils.isEmpty(textBeforeCursor) && TextUtils.isEmpty(textAfterCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
                     mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
@@ -808,6 +819,7 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
                 boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
                 Log.d(TAG, "删除操作b=" + b);
+                simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                 return true;
             }
         } else {
@@ -833,7 +845,7 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_2 && keyCode <= KeyEvent.KEYCODE_9) {
+        if (keyCode >= KeyEvent.KEYCODE_2 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_1) {
             mDecInfo.setmCandidatesList(keyChar);
             mDecInfo.mPageStart.clear();
             mDecInfo.mPageStart.add(0);
@@ -878,7 +890,9 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "getCurrentInputConnection=" + ic);
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
-                if (TextUtils.isEmpty(textBeforeCursor)) {
+                CharSequence textAfterCursor = ic.getTextAfterCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                if (TextUtils.isEmpty(textBeforeCursor) && TextUtils.isEmpty(textAfterCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
                     mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
@@ -887,6 +901,7 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
                 boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
                 Log.d(TAG, "删除操作b=" + b);
+                simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                 return true;
             }
         } else {
@@ -911,7 +926,7 @@ public class PinyinIME extends InputMethodService {
                                                KeyEvent event, boolean realAction) {
         Log.d(TAG, "processStatePortugueseIdle");
         if (realAction) {
-            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_1) {
                 mDecInfo.setmCandidatesList(keyChar);
                 mDecInfo.mPageStart.clear();
                 mDecInfo.mPageStart.add(0);
@@ -926,7 +941,9 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "getCurrentInputConnection=" + ic);
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
-                if (TextUtils.isEmpty(textBeforeCursor)) {
+                CharSequence textAfterCursor = ic.getTextAfterCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                if (TextUtils.isEmpty(textBeforeCursor) && TextUtils.isEmpty(textAfterCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
                     mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
@@ -935,6 +952,7 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
                 boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
                 Log.d(TAG, "删除操作b=" + b);
+                simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                 return true;
             }
         } else {
@@ -969,7 +987,7 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_1) {
             mDecInfo.setmCandidatesList(keyChar);
             mDecInfo.mPageStart.clear();
             mDecInfo.mPageStart.add(0);
@@ -1009,7 +1027,7 @@ public class PinyinIME extends InputMethodService {
             return true;
         }
 
-        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9 && keyCode != KeyEvent.KEYCODE_1) {
             mDecInfo.setmCandidatesList(keyChar);
             mDecInfo.mPageStart.clear();
             mDecInfo.mPageStart.add(0);
@@ -1060,6 +1078,7 @@ public class PinyinIME extends InputMethodService {
                 }
                 if (realAction) {
                     ic.deleteSurroundingText(1, 0);
+                    simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                 }
             }
             return true;
@@ -1105,6 +1124,7 @@ public class PinyinIME extends InputMethodService {
             }
             // 发送删除一个字符的操作给 EditText
             ic.deleteSurroundingText(1, 0);
+            simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
             return true;
         }
 
@@ -1169,15 +1189,19 @@ public class PinyinIME extends InputMethodService {
                 Log.d(TAG, "getCurrentInputConnection=" + ic);
                 CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                 Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
-                if (TextUtils.isEmpty(textBeforeCursor)) {
+                CharSequence textAfterCursor = ic.getTextAfterCursor(1, 0);
+                Log.d(TAG, "textBeforeCursor=" + textBeforeCursor);
+                if (TextUtils.isEmpty(textBeforeCursor) && TextUtils.isEmpty(textAfterCursor)) {
                     mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_HKB);
                     mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
                     Log.d(TAG, "字符串为空，按下了back按键，应该切换为数字模式");
+
                     return false;
                 }
                 Log.d(TAG, "getCurrentInputConnection()=" + getCurrentInputConnection());
                 boolean b = getCurrentInputConnection().deleteSurroundingText(1, 0);
                 Log.d(TAG, "删除操作b=" + b);
+                simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                 return true;
             }
         } else {
@@ -1261,8 +1285,10 @@ public class PinyinIME extends InputMethodService {
                     CharSequence textBeforeCursor = ic.getTextBeforeCursor(1, 0);
                     if (!TextUtils.isEmpty(textBeforeCursor)) {
                         boolean b = ic.deleteSurroundingText(1, 0);
-                        if (b)
+                        if (b) {
+                            simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                             return true;//onKeyDown返回true，才能在onKeyUp中获取到当前编辑框的字符串
+                        }
                     }
                 }
             }
@@ -1350,10 +1376,10 @@ public class PinyinIME extends InputMethodService {
             mDecInfo.mCursorPos = 0;
             mDecInfo.inputKeyChars.clear();
             if (mInputModeSwitcher.getCurrentInputMode() == InputModeSwitcher.MODE_SYMBOL) {
-                /*String language = getResources().getConfiguration().locale.getLanguage();
+                String language = getResources().getConfiguration().locale.getLanguage();
                 mInputModeSwitcher.toggleNextState(language);
                 mDecInfo.mCurrentInputMode = mInputModeSwitcher.getCurrentInputMode();
-                setCandidatesViewShown(false);*/
+                setCandidatesViewShown(false);
             } else {
                 //如果当前是输入中文或者英文状态就切换到输入字符状态
                 mInputModeSwitcher.setCurrentInputMode(InputModeSwitcher.MODE_SYMBOL);
@@ -1590,6 +1616,7 @@ public class PinyinIME extends InputMethodService {
                 if (realAction) {
                     Log.e(TAG, "processStateIdle()::textBeforeCursor=" + textBeforeCursor);
                     getCurrentInputConnection().deleteSurroundingText(1, 0);
+                    simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
                 }
             }
             return true;
@@ -2254,7 +2281,7 @@ public class PinyinIME extends InputMethodService {
      * @param keyCode
      */
     private void simulateKeyEventDownUp(int keyCode) {
-        Log.d(TAG, "simulateKeyEventDownUp()");
+        Log.d(TAG, "simulateKeyEventDownUp(),keyCode=" + keyCode);
         InputConnection ic = getCurrentInputConnection();
         if (null == ic)
             return;

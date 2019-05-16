@@ -12,25 +12,23 @@ public class PTAlpha {
     public static HashMap<Character, char[]> mapsUpper = new HashMap<>();
 
     static {
-        mapsLower.put('1', new char[]{'1'});
-        mapsLower.put('2', new char[]{'a', 'b', 'c', 'ã', 'á', 'â', 'à', 'c', 'ç', '2'});
-        mapsLower.put('3', new char[]{'d', 'e', 'f', 'é', 'ê', '3'});
-        mapsLower.put('4', new char[]{'g', 'h', 'i', 'í', '4'});
-        mapsLower.put('5', new char[]{'j', 'k', 'l', '5'});
-        mapsLower.put('6', new char[]{'m', 'n', 'o', 'õ', 'ó', 'ô', '6'});
-        mapsLower.put('7', new char[]{'p', 'q', 'r', 's', '7'});
-        mapsLower.put('8', new char[]{'t', 'u', 'v', 'ú', 'ü', '8'});
-        mapsLower.put('9', new char[]{'w', 'x', 'y', 'z', '9'});
+        mapsLower.put('2', new char[]{'a', 'b', 'c', 'ã', 'á', 'â', 'à', 'c', 'ç'});
+        mapsLower.put('3', new char[]{'d', 'e', 'f', 'é', 'ê'});
+        mapsLower.put('4', new char[]{'g', 'h', 'i', 'í'});
+        mapsLower.put('5', new char[]{'j', 'k', 'l'});
+        mapsLower.put('6', new char[]{'m', 'n', 'o', 'õ', 'ó', 'ô'});
+        mapsLower.put('7', new char[]{'p', 'q', 'r', 's'});
+        mapsLower.put('8', new char[]{'t', 'u', 'v', 'ú', 'ü'});
+        mapsLower.put('9', new char[]{'w', 'x', 'y', 'z'});
 
-        mapsUpper.put('1', new char[]{'1'});
-        mapsUpper.put('2', new char[]{'A', 'B', 'C', 'Ã', 'Á', 'Â', 'À', 'C', 'Ç', '2'});
-        mapsUpper.put('3', new char[]{'D', 'E', 'F', 'É', 'Ê', '3'});
-        mapsUpper.put('4', new char[]{'G', 'H', 'I', 'Í', '4'});
-        mapsUpper.put('5', new char[]{'J', 'K', 'L', '5'});
-        mapsUpper.put('6', new char[]{'M', 'N', 'O', 'Õ', 'Ó', 'Ô', '6'});
-        mapsUpper.put('7', new char[]{'P', 'Q', 'R', 'S', '7'});
-        mapsUpper.put('8', new char[]{'T', 'U', 'V', 'Ú', 'Ü', '8'});
-        mapsUpper.put('9', new char[]{'W', 'X', 'Y', 'Z', '9'});
+        mapsUpper.put('2', new char[]{'A', 'B', 'C', 'Ã', 'Á', 'Â', 'À', 'C', 'Ç'});
+        mapsUpper.put('3', new char[]{'D', 'E', 'F', 'É', 'Ê'});
+        mapsUpper.put('4', new char[]{'G', 'H', 'I', 'Í'});
+        mapsUpper.put('5', new char[]{'J', 'K', 'L'});
+        mapsUpper.put('6', new char[]{'M', 'N', 'O', 'Õ', 'Ó', 'Ô'});
+        mapsUpper.put('7', new char[]{'P', 'Q', 'R', 'S'});
+        mapsUpper.put('8', new char[]{'T', 'U', 'V', 'Ú', 'Ü'});
+        mapsUpper.put('9', new char[]{'W', 'X', 'Y', 'Z'});
     }
 
     public static char[] getLower(char c) {
