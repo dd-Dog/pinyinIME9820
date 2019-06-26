@@ -504,6 +504,7 @@ public class InputModeSwitcher {
     public static final int MODE_ESPAN_UPPER = 1011;//葡语大写
     public static final int MODE_RUSSIA = 1012;//俄语
     public static final int MODE_CHINESE_STROKE = 1009;//笔画
+    public static final int MODE_PHONE = 1010;
     private int mCurrentInputMode = MODE_HKB;
     private int mLastInputMode = MODE_UNSET;
     private static final String TAG = "InputModeSwitcher";
@@ -518,8 +519,10 @@ public class InputModeSwitcher {
         Log.e(TAG, "requestInputType，inputType=" + (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS));
         switch (editorInfo.inputType & EditorInfo.TYPE_MASK_CLASS) {
             case EditorInfo.TYPE_CLASS_NUMBER:
-            case EditorInfo.TYPE_CLASS_PHONE:
                 mCurrentInputMode = MODE_HKB;
+                break;
+            case EditorInfo.TYPE_CLASS_PHONE:
+                mCurrentInputMode = MODE_PHONE;
                 break;
             case EditorInfo.TYPE_CLASS_TEXT:
                 /*String locale = Locale.getDefault().getLanguage();
