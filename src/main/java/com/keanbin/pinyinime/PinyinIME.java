@@ -381,7 +381,9 @@ public class PinyinIME extends InputMethodService {
             }
             if (processKey(event, true)) {
 
-                if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_SYMBOL &&
+                if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_CHINESE &&
+                        mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_CHINESE_STROKE &&
+                        mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_SYMBOL &&
                         mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_HKB &&
                         mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_NUMBER &&
                         keyCode > KeyEvent.KEYCODE_0 && keyCode < KeyEvent.KEYCODE_STAR &&
@@ -2260,7 +2262,9 @@ public class PinyinIME extends InputMethodService {
      * @param updateUi 是否更新UI
      */
     private void changeToStateInput(boolean updateUi) {
-        if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_SYMBOL) {
+        if (mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_SYMBOL &&
+                mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_CHINESE &&
+                mInputModeSwitcher.getCurrentInputMode() != InputModeSwitcher.MODE_CHINESE_STROKE) {
             return;
         }
         Log.d(TAG, "changeToStateInput()");

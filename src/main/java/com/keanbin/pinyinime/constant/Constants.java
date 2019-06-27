@@ -23,5 +23,6 @@ public class Constants {
     public static final int ES = 0X00000010;   //西班牙语
     public static int EN_RU = EN | RU;
     public static final int EN_PT_ES = EN | PT | ES;
-    public static int LANGUAGE_SUPPORT = EN_PT_ES;
+    public static final int CN_EN = CN | EN;
+    public static int LANGUAGE_SUPPORT = CN_EN;
 }

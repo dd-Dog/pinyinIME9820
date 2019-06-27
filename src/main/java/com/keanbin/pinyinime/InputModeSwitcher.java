@@ -534,26 +534,30 @@ public class InputModeSwitcher {
                 }*/
                 String language = mContext.getResources().getConfiguration().locale.getLanguage();
                 Log.d(TAG, "language=" + language);
-                if (TextUtils.equals("en", language)){
+                if (TextUtils.equals("zh", language)) {
+                    Constants.LANGUAGE_SUPPORT = Constants.CN_EN;
+                } else if (TextUtils.equals("en", language)) {
                     Constants.LANGUAGE_SUPPORT = Constants.EN;
-                }else if (TextUtils.equals("pt", language)){
+                } else if (TextUtils.equals("pt", language)) {
                     Constants.LANGUAGE_SUPPORT = Constants.PT;
-                }else if (TextUtils.equals("ru", language)){
+                } else if (TextUtils.equals("ru", language)) {
                     Constants.LANGUAGE_SUPPORT = Constants.RU;
-                }else if (TextUtils.equals("es", language)){
+                } else if (TextUtils.equals("es", language)) {
                     Constants.LANGUAGE_SUPPORT = Constants.ES;
-                }else {
+                } else {
                     Constants.LANGUAGE_SUPPORT = Constants.EN;
                 }
                 Log.d(TAG, "LANGUAGE_SUPPORT=" + Constants.LANGUAGE_SUPPORT);
-                if (Constants.LANGUAGE_SUPPORT == Constants.EN){
+                if (Constants.LANGUAGE_SUPPORT == Constants.EN) {
                     mCurrentInputMode = MODE_LOWERCASE;
-                }else if(Constants.LANGUAGE_SUPPORT == Constants.PT){
+                } else if (Constants.LANGUAGE_SUPPORT == Constants.PT) {
                     mCurrentInputMode = MODE_PT_LOWER;
-                }else if(Constants.LANGUAGE_SUPPORT == Constants.ES){
+                } else if (Constants.LANGUAGE_SUPPORT == Constants.ES) {
                     mCurrentInputMode = MODE_ESPAN_LOWER;
-                }else if(Constants.LANGUAGE_SUPPORT == Constants.RU){
+                } else if (Constants.LANGUAGE_SUPPORT == Constants.RU) {
                     mCurrentInputMode = MODE_RUSSIA;
+                }else if (Constants.LANGUAGE_SUPPORT == Constants.CN_EN){
+                    mCurrentInputMode = MODE_CHINESE;
                 }
                 break;
             default:
@@ -618,7 +622,7 @@ public class InputModeSwitcher {
                 case MODE_UNSETTED:
                     break;
             }
-        }else if (Constants.LANGUAGE_SUPPORT == EN_PT_ES){
+        } else if (Constants.LANGUAGE_SUPPORT == EN_PT_ES) {
             switch (mCurrentInputMode) {
                 case MODE_LOWERCASE:
                     mCurrentInputMode = MODE_UPPERCASE;
@@ -647,7 +651,7 @@ public class InputModeSwitcher {
                 case MODE_UNSETTED:
                     break;
             }
-        }else if (Constants.LANGUAGE_SUPPORT == Constants.EN) {
+        } else if (Constants.LANGUAGE_SUPPORT == Constants.EN) {
             switch (mCurrentInputMode) {
                 case MODE_LOWERCASE:
                     mCurrentInputMode = MODE_UPPERCASE;
@@ -664,7 +668,7 @@ public class InputModeSwitcher {
                 case MODE_UNSETTED:
                     break;
             }
-        }else if (Constants.LANGUAGE_SUPPORT == Constants.RU) {
+        } else if (Constants.LANGUAGE_SUPPORT == Constants.RU) {
             switch (mCurrentInputMode) {
                 case MODE_RUSSIA:
                     mCurrentInputMode = MODE_NUMBER;
@@ -678,7 +682,7 @@ public class InputModeSwitcher {
                 case MODE_UNSETTED:
                     break;
             }
-        }else if (Constants.LANGUAGE_SUPPORT == Constants.PT) {
+        } else if (Constants.LANGUAGE_SUPPORT == Constants.PT) {
             switch (mCurrentInputMode) {
                 case MODE_PT_LOWER:
                     mCurrentInputMode = MODE_PT_UPPER;
@@ -695,7 +699,7 @@ public class InputModeSwitcher {
                 case MODE_UNSETTED:
                     break;
             }
-        }else if (Constants.LANGUAGE_SUPPORT == Constants.ES) {
+        } else if (Constants.LANGUAGE_SUPPORT == Constants.ES) {
             switch (mCurrentInputMode) {
                 case MODE_ESPAN_LOWER:
                     mCurrentInputMode = MODE_ESPAN_UPPER;
@@ -705,6 +709,26 @@ public class InputModeSwitcher {
                     break;
                 case MODE_NUMBER:
                     mCurrentInputMode = MODE_ESPAN_LOWER;
+                    break;
+                case MODE_SYMBOL:
+                    mCurrentInputMode = mLastInputMode;
+                    break;
+                case MODE_UNSETTED:
+                    break;
+            }
+        } else if (Constants.LANGUAGE_SUPPORT == Constants.CN_EN) {
+            switch (mCurrentInputMode) {
+                case MODE_CHINESE:
+                    mCurrentInputMode = MODE_LOWERCASE;
+                    break;
+                case MODE_LOWERCASE:
+                    mCurrentInputMode = MODE_UPPERCASE;
+                    break;
+                case MODE_UPPERCASE:
+                    mCurrentInputMode = MODE_NUMBER;
+                    break;
+                case MODE_NUMBER:
+                    mCurrentInputMode = MODE_CHINESE;
                     break;
                 case MODE_SYMBOL:
                     mCurrentInputMode = mLastInputMode;
