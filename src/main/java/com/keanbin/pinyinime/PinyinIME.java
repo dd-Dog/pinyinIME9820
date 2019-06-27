@@ -1617,6 +1617,7 @@ public class PinyinIME extends InputMethodService {
                     Log.e(TAG, "processStateIdle()::textBeforeCursor=" + textBeforeCursor);
                     getCurrentInputConnection().deleteSurroundingText(1, 0);
                     simulateKeyEventDownUp(KeyEvent.KEYCODE_DEL);
+                    return false;
                 }
             }
             return true;
