@@ -504,7 +504,7 @@ public class InputModeSwitcher {
     public static final int MODE_ESPAN_UPPER = 1011;//葡语大写
     public static final int MODE_RUSSIA = 1012;//俄语
     public static final int MODE_CHINESE_STROKE = 1009;//笔画
-    public static final int MODE_PHONE = 1010;
+    public static final int MODE_PHONE = 1013;
     private int mCurrentInputMode = MODE_HKB;
     private int mLastInputMode = MODE_UNSET;
     private static final String TAG = "InputModeSwitcher";
